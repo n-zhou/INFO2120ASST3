@@ -1,5 +1,8 @@
 package usyd.it.olympics;
 
+//imported by nicc
+import java.io.File;
+
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Date;
@@ -21,6 +24,7 @@ public class OlympicsDBClient {
 	private String memberType;
 
     OlympicsDBClient(String config) {
+    	
         // Make sure the DB backend works
         try {
             db = new DatabaseBackend(new FileInputStream(config)); // Note, doesn't connect to DB
@@ -91,6 +95,7 @@ public class OlympicsDBClient {
      * @param args Ignored
      */
     public static void main(String[] args) {
+    	
         SwingUtilities.invokeLater(new Runnable() {
 
             @Override
