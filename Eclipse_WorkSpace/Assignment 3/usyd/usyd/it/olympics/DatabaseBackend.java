@@ -15,7 +15,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -67,6 +69,7 @@ public class DatabaseBackend{
 	        // Don't forget you have memberID variables memberUser available to
 	        // use in a query.
 	        // Query whether login (memberID, password) is correct...
+            /*sample commented out
             boolean valid = (member.equals("testuser") && new String(password).equals("testpass"));
             if(valid){
             	details = new HashMap<String,Object>();
@@ -80,7 +83,31 @@ public class DatabaseBackend{
             	details.put("residence", "SIT");
             	details.put("member_type", "athlete");
             }
+            */
+
+            //WORK IN PROGRESS
+            Statement statement = conn.createStatement();
+            String query = String.format("SELECT * FROM member WHERE LOWER(member_id) = LOWER(\'%s\') AND pass_word = \'%s\';", member, new String(password));
+            ResultSet rset = statement.executeQuery(query);
+            if(rset.next()){
+            	details = new HashMap<String,Object>();
+
+		        // Populate with record data
+  	        	details.put("member_id", member);
+  	        	details.put("title", rset.getString(2));
+  	        	details.put("family_name", rset.getString(3));
+              details.put("first_name", rset.getString(4));
+  	        	details.put("country_name", rset.getString(5));
+  	        	details.put("residence", rset.getString(6));
+
+              //placer holder
+  	        	details.put("member_type", "Official");
+
+            }
+            statement.close();
+            //END WORK IN PROGRESS
         } catch (Exception e){
+        	System.err.println(e);
             throw new OlympicsDBException("Error checking login details", e);
         }
         return details;
@@ -112,8 +139,13 @@ public class DatabaseBackend{
      */
     ArrayList<HashMap<String,Object>> allEvents() throws OlympicsDBException {
         // FIXME: Replace The following with REAL OPERATIONS!
-
+        Statement stmt = conn.createStatement();
+        String query = "SELECT * FROM UoSOffering ORDER BY uosCode ASC";
+        ResultSet rset = stmt.executeQuery(query);
         ArrayList<HashMap<String,Object>> events = new ArrayList<HashMap<String,Object>>();
+        while(rset.next()){
+          events.add(rset);
+        }
 //        events.add(new OlympicEntity("200M Freestyle", new Date(),"Points", "Swimming", "SIT"));
         return events;
     }
