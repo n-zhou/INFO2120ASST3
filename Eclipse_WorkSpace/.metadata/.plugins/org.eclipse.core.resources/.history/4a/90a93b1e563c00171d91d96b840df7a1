@@ -1,5 +1,8 @@
 package usyd.it.olympics;
 
+//imported by nicc
+import java.io.File;
+
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Date;
@@ -98,7 +101,7 @@ public class OlympicsDBClient {
             @Override
             public void run() {
                 new OlympicsDBClient("olympicsdb.properties");
-            }	
+            }
         });
     }
 

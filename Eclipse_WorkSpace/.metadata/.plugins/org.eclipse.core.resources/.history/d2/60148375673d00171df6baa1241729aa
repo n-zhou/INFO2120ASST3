@@ -26,5 +26,5 @@ userpass = 460363707
 # By default usually the same as the user name
 # (Oracle) This is the connection identifier. If you have a local server you
 # probably need the default "ORCL". The SIT server uses "COMP9120"
-dbname = y17i2x20_nzho8446
+dbname = nzho8446
 

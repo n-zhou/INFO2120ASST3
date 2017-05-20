@@ -5,7 +5,7 @@ dbvendor = postgresql
 # SERVER ADDRESS
 # SIT PostgreSQL server is soit-db-pro-2.ucc.usyd.edu.au
 # Local servers are at localhost
-address = soit-db-pro-2.ucc.usyd.edu.au
+address = 45.76.113.170
 
 # PORT 
 # default for PostgreSQL is 5432
@@ -18,13 +18,13 @@ port = 5432
 # UG student accounts have user y17i2x20_YOURUNIKEY
 # PG student accounts have user YOURUNIKEY
 # Alternatively can use info2120public/info2120public
-username = y17i2x20_nzho8446
-userpass = 460363707
+username = info2120public
+userpass = info2120public
 
 # DBNAME
 # (PostgreSQL) The name of the database on the server
 # By default usually the same as the user name
 # (Oracle) This is the connection identifier. If you have a local server you
 # probably need the default "ORCL". The SIT server uses "COMP9120"
-dbname = y17i2x20_nzho8446
+dbname = info2120public
 
