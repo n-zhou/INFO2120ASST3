@@ -69,40 +69,31 @@ public class DatabaseBackend{
 	        // Don't forget you have memberID variables memberUser available to
 	        // use in a query.
 	        // Query whether login (memberID, password) is correct...
-            /*sample commented out
-            boolean valid = (member.equals("testuser") && new String(password).equals("testpass"));
-            if(valid){
-            	details = new HashMap<String,Object>();
 
-    	        // Populate with record data
-            	details.put("member_id", member);
-            	details.put("title", "Mr");
-            	details.put("first_name", "Potato");
-            	details.put("family_name", "Head");
-            	details.put("country_name", "Australia");
-            	details.put("residence", "SIT");
-            	details.put("member_type", "athlete");
-            }
-            */
-
-            //WORK IN PROGRESS
             Statement statement = conn.createStatement();
             String query = String.format("SELECT * FROM member WHERE LOWER(member_id) = LOWER(\'%s\') AND pass_word = \'%s\';", member, new String(password));
             ResultSet rset = statement.executeQuery(query);
             if(rset.next()){
-            	details = new HashMap<String,Object>();
-
-		        // Populate with record data
-  	        	details.put("member_id", member);
-  	        	details.put("title", rset.getString(2));
-  	        	details.put("family_name", rset.getString(3));
-              details.put("first_name", rset.getString(4));
-  	        	details.put("country_name", rset.getString(5));
-  	        	details.put("residence", rset.getString(6));
-
-              //placer holder
-  	        	details.put("member_type", "Official");
-
+            	details = new HashMap<>();
+            	details.put("member_id", rset.getString(1));
+            	statement = conn.createStatement();
+            	query = String.format("SELECT COUNT(*) FROM Official WHERE LOWER(member_id) = LOWER(\'%s\')", member);
+            	ResultSet official = statement.executeQuery(query);
+            	statement = conn.createStatement();
+            	query = String.format("SELECT COUNT(*) FROM Staff WHERE LOWER(member_id) = LOWER(\'%s\')", member);
+            	ResultSet staff = statement.executeQuery(query);
+            	statement = conn.createStatement();
+            	query = String.format("SELECT COUNT(*) FROM Athlete WHERE LOWER(member_id) = LOWER(\'%s\')", member);
+            	ResultSet athlete = statement.executeQuery(query);
+            	if(official.next()){
+            		details.put("member_type", "Official");
+            	}
+            	if(staff.next()){
+            		details.put("member_type", "Staff");
+            	}
+            	if(athlete.next()){
+            		details.put("member_type", "Athlete");
+            	}
             }
             statement.close();
             //END WORK IN PROGRESS
@@ -124,8 +115,35 @@ public class DatabaseBackend{
      */
     public HashMap<String, Object> memberDetails(String memberID, String member_type) throws OlympicsDBException {
         // FIXME: REPLACE FOLLOWING LINES WITH REAL OPERATION
-    	HashMap<String, Object> details = new HashMap<String, Object>();
-    	//details.put(arg0, arg1)= "Hello Mr Joe Bloggs";
+    	HashMap<String, Object> details = null;
+    	try{
+	    	Connection conn = getConnection();
+	    	Statement statement = conn.createStatement();
+	        String query = String.format("SELECT * FROM member WHERE LOWER(member_id) = LOWER(\'%s\');", memberID);
+	        ResultSet rset = statement.executeQuery(query);
+	        if(rset.next()){
+	        	details = new HashMap<String,Object>();
+	
+		        // Populate with record data
+		        	details.put("member_id", memberID);
+		        	details.put("title", rset.getString(2));
+		        	details.put("family_name", rset.getString(3));
+		        	details.put("first_name", rset.getString(4));
+		        	details.put("country_name", rset.getString(5));
+		        	statement = conn.createStatement();
+		        	query = String.format("SELECT place_name FROM Place WHERE place_id = %s", rset.getString(6));
+		        	ResultSet residence = statement.executeQuery(query);
+		        	residence.next();
+		        	details.put("residence", residence.getString("place_name"));
+		        	details.put("member_type", member_type);
+	        }
+	        statement.close();
+    	}
+    	catch(Exception e){
+    		System.err.println(e);
+    		throw new OlympicsDBException("Error retriving details",e);
+    		
+    	}
         return details;
     }
 
@@ -136,15 +154,19 @@ public class DatabaseBackend{
      * Get the events listed in the olympics
      * @return List of events
      * @throws OlympicsDBException
+     * @throws SQLException 
      */
-    ArrayList<HashMap<String,Object>> allEvents() throws OlympicsDBException {
+    ArrayList<HashMap<String,Object>> allEvents() throws OlympicsDBException, SQLException {
         // FIXME: Replace The following with REAL OPERATIONS!
+    	Connection conn = getConnection();
         Statement stmt = conn.createStatement();
         String query = "SELECT * FROM UoSOffering ORDER BY uosCode ASC";
         ResultSet rset = stmt.executeQuery(query);
         ArrayList<HashMap<String,Object>> events = new ArrayList<HashMap<String,Object>>();
         while(rset.next()){
-          events.add(rset);
+        	HashMap<String, Object> event = new HashMap<>();
+        	//event.put();
+        	events.add(event);
         }
 //        events.add(new OlympicEntity("200M Freestyle", new Date(),"Points", "Swimming", "SIT"));
         return events;
@@ -324,7 +346,7 @@ public class DatabaseBackend{
 
         // FIXME: DUMMY FUNCTION NEEDS TO BE PROPERLY IMPLEMENTED
     	booking = new HashMap<String,Object>();
-
+    	
         booking.put("vehicle", "TR870R");
     	booking.put("start_day", "21/12/2020");
     	booking.put("start_time", new Date());

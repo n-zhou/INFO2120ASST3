@@ -26,10 +26,10 @@ public class HomeScreen extends GuiScreen {
 
 	public void showMemberDetails(HashMap<String, Object> details) {
 		// FIXME: Print the provided data
-        String message = "Hello";
-        message = message.concat("\nYou are an: " + "Athlete");
-        message = message.concat("\nYou are from: " + "Australia");
-        message = message.concat("\nYour live at: " + "SIT");
+        String message = String.format("Hello %s %s", details.get("first_name"), details.get("family_name"));
+        message = message.concat("\nYou are an: " + details.get("member_type"));
+        message = message.concat("\nYou are from: " + details.get("country_name"));
+        message = message.concat("\nYour live at: " + details.get("residence"));
         message = message.concat("\nYour medal tally is:");
         message = message.concat("\n\tGold: 5");
         message = message.concat("\n\tSilver: 4");
