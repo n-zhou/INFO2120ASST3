@@ -68,21 +68,27 @@ public class DatabaseBackend {
 	        // use in a query.
 	        // Query whether login (memberID, password) is correct...
             Statement statement = conn.createStatement();
-            String query = String.format("SELECT * FROM Member WHERE LOWER(member_id) = LOWER(\'%s\') AND pass_word = \'%s\'", member, new String(password));
+            String query = String.format("SELECT * FROM Member WHERE LOWER(member_id) = LOWER(\'%s\') AND pass_word = \'%s\';", member, new String(password));
             ResultSet rset = statement.executeQuery(query);
             if(rset.next()){
             	details = new HashMap<String,Object>();
-            	query = String.format("SELECT * FROM Athlete WHERE LOWER(member_id) = LOWER(\'%s\')", member);
+            	statement = conn.createStatement();
+            	query = String.format("SELECT COUNT(*) FROM Athlete WHERE LOWER(member_id) = LOWER(\'%s\');", member);
             	ResultSet athlete = statement.executeQuery(query);
-            	query = String.format("SELECT * FROM official WHERE LOWER(member_id) = LOWER(\'%s\')", member);
-            	ResultSet official= statement.executeQuery(query);
-            	query = String.format("SELECT * FROM staff WHERE LOWER(member_id) = LOWER(\'%s\')", member);
-            	ResultSet staff= statement.executeQuery(query);
-            	if(athlete != null)
-            		details.put("member_type", "athlete");
-            	if(official != null)
+            	statement = conn.createStatement();
+            	query = String.format("SELECT COUNT(*) FROM official WHERE LOWER(member_id) = LOWER(\'%s\');", member);
+            	ResultSet official = statement.executeQuery(query);
+            	statement = conn.createStatement();
+            	query = String.format("SELECT COUNT(*) FROM staff WHERE LOWER(member_id) = LOWER(\'%s\');", member);
+            	ResultSet staff = statement.executeQuery(query);
+            	athlete.next();
+            	official.next();
+            	staff.next();
+            	if(athlete.getInt(1) == 1)
+            		details.put("member_type", "athlete");            		
+            	if(official.getInt(1) == 1)
             		details.put("member_type", "official");
-            	if(staff != null)
+            	if(staff.getInt(1) == 1)
             		details.put("member_type", "staff");
             	statement.close();
             }
@@ -108,26 +114,29 @@ public class DatabaseBackend {
     	//details.put(arg0, arg1)= "Hello Mr Joe Bloggs";
     	Connection conn = getConnection();
     	details = new HashMap<String,Object>();
-    	String query = String.format("SELECT * FROM Athlete WHERE LOWER(member_id) = LOWER(\'%s\')", memberID);
+    	String query = String.format("SELECT COUNT(*) FROM Athlete WHERE LOWER(member_id) = LOWER(\'%s\')", memberID);
     	Statement statement = conn.createStatement();
     	ResultSet athlete = statement.executeQuery(query);
-    	query = String.format("SELECT * FROM official WHERE LOWER(member_id) = LOWER(\'%s\')", memberID);
+    	athlete.next();
+    	query = String.format("SELECT COUNT(*) FROM official WHERE LOWER(member_id) = LOWER(\'%s\')", memberID);
     	statement = conn.createStatement();
     	ResultSet official= statement.executeQuery(query);
-    	query = String.format("SELECT * FROM staff WHERE LOWER(member_id) = LOWER(\'%s\')", memberID);
+    	official.next();
+    	query = String.format("SELECT COUNT(*) FROM staff WHERE LOWER(member_id) = LOWER(\'%s\')", memberID);
     	statement = conn.createStatement();
     	ResultSet staff= statement.executeQuery(query);
-    	if(athlete.next())
-    		details.put("member_type", "athlete");
-    	if(official.next())
+    	staff.next();
+    	if(athlete.getInt(1) == 1)
+    		details.put("member_type", "athlete");            		
+    	if(official.getInt(1) == 1)
     		details.put("member_type", "official");
-    	if(staff.next())
+    	if(staff.getInt(1) == 1)
     		details.put("member_type", "staff");
     	query = "SELECT *"
-				 + "FROM Member NATURAL JOIN "
-				 + "Country JOIN "
-				 + "Place ON (accommodation = place_id)"
-				 + "WHERE member_id = '" + memberID + "'";
+				 + "FROM Member NATURAL JOIN\n"
+				 + "Country JOIN\n"
+				 + "Place ON (accommodation = place_id)\n"
+				 + "WHERE member_id = '" + memberID + "\';";
     	statement = conn.createStatement();
     	ResultSet rset = statement.executeQuery(query);
     	rset.next();
@@ -150,10 +159,34 @@ public class DatabaseBackend {
     	// Some attributes fetched may depend upon member_type
     	// This is for an athlete
     	//TODO
-    	details.put("num_gold", Integer.valueOf(5));
-    	details.put("num_silver", Integer.valueOf(4));
-    	details.put("num_bronze", Integer.valueOf(1));
-        
+    	if(details.get("member_type").equals("athlete")){
+    		statement = conn.createStatement();
+    		query = String.format("SELECT COUNT(*)\n"
+    							+ "FROM Particiapates\n"
+    							+ "WHERE athlete_id = \'%s\'\n"
+    							+ "AND medal = 'G';", memberID);
+    		rset = statement.executeQuery(query);
+    		rset.next();
+    		details.put("num_gold", rset.getInt(1));
+    		statement = conn.createStatement();
+    		query = String.format("SELECT COUNT(*)\n"
+    							+ "FROM Particiapates\n"
+    							+ "WHERE athlete_id = \'%s\'\n"
+    							+ "AND medal = 'S';", memberID);
+    		rset = statement.executeQuery(query);
+    		rset.next();
+        	details.put("num_silver", rset.getInt(1));
+        	statement = conn.createStatement();
+    		query = String.format("SELECT COUNT(*)\n"
+    							+ "FROM Particiapates\n"
+    							+ "WHERE athlete_id = \'%s\'\n"
+    							+ "AND medal = 'B';", memberID);
+    		rset = statement.executeQuery(query);
+    		rset.next();
+        	details.put("num_bronze", rset.getInt(1));
+    	}
+    	
+        statement.close();
         return details;
     }
 
