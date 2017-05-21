@@ -1,4 +1,4 @@
-
+_
 ﻿CREATE TABLE Country(
     country_code CHAR(3) PRIMARY KEY,
     iso_code CHAR(2) UNIQUE,
@@ -17,7 +17,7 @@ CREATE TABLE Location (
    CONSTRAINT location_CHK CHECK (loc_type IN ('eventvenue','suburb','area','region','city','state','country'))
 );
 
-CREATE TABLE Place (
+CREATE TABLE Place ( 
     place_id INT PRIMARY KEY, -- surrogate key
     place_name 	VARCHAR(80) UNIQUE, -- natural key
     gps_long	REAL,

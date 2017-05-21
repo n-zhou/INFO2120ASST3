@@ -21,6 +21,7 @@
 	<section name="ZipFileImportWizard">
 		<item value="false" key="WizardZipFileResourceImportPage1.STORE_OVERWRITE_EXISTING_RESOURCES_ID"/>
 		<list key="WizardZipFileResourceImportPage1.STORE_SOURCE_NAMES_ID">
+			<item value="/home/tonyabbott/olympicsdb-java/src/usyd.zip"/>
 			<item value="/home/tonyabbott/INFO2120ASST3/sit-info2120-olympicsdb-java-727737bbe008/src/usyd.zip"/>
 			<item value="/home/tonyabbott/INFO2120ASST3/sit-info2120-olympicsdb-java-727737bbe008/please.zip"/>
 		</list>
