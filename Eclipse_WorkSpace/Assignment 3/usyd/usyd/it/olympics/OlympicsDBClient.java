@@ -142,41 +142,47 @@ public class OlympicsDBClient {
 
     public void makeBooking(String forMember, String vehicle, Date departs) {
         setMessage("Submitting booking");
-        try {
+        try{
         	HashMap<String,Object> bookingDetails = db.makeBooking(memberId, 
         			forMember, departs);
-        	if(bookingDetails==null) {
+        	if(bookingDetails==null){
                 setMessage("Could not make booking");
-        	} else {
+        	} 
+        	else{
                 gui.getReportScreen().show(BookingDetails.getSummary(bookingDetails));
                 gui.showReportScreen();
                 setMessage("Submission complete");
         	}
-        } catch (OlympicsDBException e) {
+        } 
+        catch(OlympicsDBException e){
             setMessage(e.getMessage());
         }
     }
     
     public void showHistory() {
         setMessage("Fetching booking history.");
-        try {
+        try{
             ArrayList<HashMap<String,Object>> bookings = db.getMemberBookings(memberId);
             gui.getHistoryScreen().showBookings(bookings);
             gui.showHistoryScreen();
             setMessage("All bookings fetched.");
-        } catch (OlympicsDBException e) {
+        } 
+        catch(OlympicsDBException e){
             setMessage(e.getMessage());
         }    
+        catch(Exception e){
+        	setMessage(e.getMessage());
+        }
     }
 
-    public void startBooking(String vehicle, Date departs) {
+    public void startBooking(String vehicle, Date departs){
         setMessage("Fetching details to start booking.");
 		gui.getBookingsCreationScreen().startBooking(vehicle, departs);
 		gui.showBookingsCreationScreen();
 		setMessage("Details fetched."); 
     }
 
-    public void showBookingDetails(Integer journeyid) {
+    public void showBookingDetails(Integer journeyid){
        setMessage("Getting booking details");
         try {
         	HashMap<String,Object> bookingDetails = db.getBookingDetails(memberId, journeyid);
@@ -195,8 +201,12 @@ public class OlympicsDBClient {
             gui.getEventBrowserScreen().setSports(sports);
             gui.showEventBrowserScreen();
             setMessage("Sports fetched.");
-        } catch (OlympicsDBException e) {
+        } 
+        catch (OlympicsDBException e) {
             setMessage(e.getMessage());
+        }
+        catch(Exception e){
+        	setMessage(e.getMessage());
         }
 	}
 	
@@ -207,7 +217,8 @@ public class OlympicsDBClient {
 	            gui.getEventResultsScreen().setTuples(eventDetails);
 	            gui.showEventResultsScreen();
 	            setMessage("Results fetched.");
-	        } catch (OlympicsDBException e) {
+	        } 
+	        catch(OlympicsDBException e){
 	            setMessage(e.getMessage());
 	        }
 	        catch(Exception e){

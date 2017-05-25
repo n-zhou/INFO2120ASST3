@@ -1,6 +1,7 @@
 package usyd.it.olympics;
 
 
+
 /**
  * Database back-end class for simple gui.
  * 
@@ -58,11 +59,10 @@ public class DatabaseBackend {
      * @throws OlympicsDBException 
      * @throws SQLException
      */
-    public HashMap<String,Object> checkLogin(String member, char[] password) throws OlympicsDBException  {
+    public HashMap<String,Object> checkLogin(String member, char[] password) throws OlympicsDBException, SQLException  {
         HashMap<String,Object> details = null;
+        Connection conn = getConnection();
         try {
-            Connection conn = getConnection();
-        	
 	        // FIXME: REPLACE FOLLOWING LINES WITH REAL OPERATION
 	        // Don't forget you have memberID variables memberUser available to
 	        // use in a query.
@@ -95,6 +95,9 @@ public class DatabaseBackend {
         } catch (Exception e) {
             throw new OlympicsDBException("Error checking login details", e);
         }
+        finally{
+        	reallyClose(conn);
+        }   
         return details;
     }
 
@@ -109,84 +112,88 @@ public class DatabaseBackend {
      * @throws SQLException 
      */
     public HashMap<String, Object> getMemberDetails(String memberID) throws OlympicsDBException, SQLException {
-        // FIXME: REPLACE FOLLOWING LINES WITH REAL OPERATION
     	HashMap<String, Object> details = new HashMap<String, Object>();
-    	//details.put(arg0, arg1)= "Hello Mr Joe Bloggs";
-    	Connection conn = getConnection();
-    	details = new HashMap<String,Object>();
-    	String query = String.format("SELECT COUNT(*) FROM Athlete WHERE LOWER(member_id) = LOWER(\'%s\')", memberID);
-    	Statement statement = conn.createStatement();
-    	ResultSet athlete = statement.executeQuery(query);
-    	athlete.next();
-    	query = String.format("SELECT COUNT(*) FROM official WHERE LOWER(member_id) = LOWER(\'%s\')", memberID);
-    	statement = conn.createStatement();
-    	ResultSet official= statement.executeQuery(query);
-    	official.next();
-    	query = String.format("SELECT COUNT(*) FROM staff WHERE LOWER(member_id) = LOWER(\'%s\')", memberID);
-    	statement = conn.createStatement();
-    	ResultSet staff= statement.executeQuery(query);
-    	staff.next();
-    	if(athlete.getInt(1) == 1)
-    		details.put("member_type", "athlete");            		
-    	if(official.getInt(1) == 1)
-    		details.put("member_type", "official");
-    	if(staff.getInt(1) == 1)
-    		details.put("member_type", "staff");
-    	query = "SELECT *"
-				 + "FROM Member NATURAL JOIN\n"
-				 + "Country JOIN\n"
-				 + "Place ON (accommodation = place_id)\n"
-				 + "WHERE member_id = '" + memberID + "\';";
-    	statement = conn.createStatement();
-    	ResultSet rset = statement.executeQuery(query);
-    	rset.next();
-    	details.put("member_id", memberID);
-    	details.put("title", rset.getString("title"));
-    	details.put("first_name", rset.getString("given_names").split(" ")[0]);
-    	details.put("family_name", rset.getString("family_name"));
-    	details.put("country_name", rset.getString("country_name"));
-    	details.put("residence", rset.getString("place_name"));
-    	
-    	//TODO
-    	statement = conn.createStatement();
-    	query = String.format("SELECT COUNT(*)\n"
-    						+ "FROM booking\n"
-    						+ "WHERE booked_for  = \'%s\';", memberID);
-    	rset = statement.executeQuery(query);
-    	rset.next();
-    	details.put("num_bookings", rset.getInt("count"));
-    	
-    	// Some attributes fetched may depend upon member_type
-    	// This is for an athlete
-    	//TODO
-    	if(details.get("member_type").equals("athlete")){
-    		statement = conn.createStatement();
-    		query = String.format("SELECT COUNT(*)\n"
-    							+ "FROM Particiapates\n"
-    							+ "WHERE athlete_id = \'%s\'\n"
-    							+ "AND medal = 'G';", memberID);
-    		rset = statement.executeQuery(query);
-    		rset.next();
-    		details.put("num_gold", rset.getInt(1));
-    		statement = conn.createStatement();
-    		query = String.format("SELECT COUNT(*)\n"
-    							+ "FROM Particiapates\n"
-    							+ "WHERE athlete_id = \'%s\'\n"
-    							+ "AND medal = 'S';", memberID);
-    		rset = statement.executeQuery(query);
-    		rset.next();
-        	details.put("num_silver", rset.getInt(1));
-        	statement = conn.createStatement();
-    		query = String.format("SELECT COUNT(*)\n"
-    							+ "FROM Particiapates\n"
-    							+ "WHERE athlete_id = \'%s\'\n"
-    							+ "AND medal = 'B';", memberID);
-    		rset = statement.executeQuery(query);
-    		rset.next();
-        	details.put("num_bronze", rset.getInt(1));
+    	Connection conn = null;
+    	try{
+	    	conn = getConnection();
+	    	details = new HashMap<String,Object>();
+	    	String query = String.format("SELECT COUNT(*) FROM Athlete WHERE LOWER(member_id) = LOWER(\'%s\')", memberID);
+	    	Statement statement = conn.createStatement();
+	    	ResultSet athlete = statement.executeQuery(query);
+	    	athlete.next();
+	    	query = String.format("SELECT COUNT(*) FROM official WHERE LOWER(member_id) = LOWER(\'%s\')", memberID);
+	    	statement = conn.createStatement();
+	    	ResultSet official= statement.executeQuery(query);
+	    	official.next();
+	    	query = String.format("SELECT COUNT(*) FROM staff WHERE LOWER(member_id) = LOWER(\'%s\')", memberID);
+	    	statement = conn.createStatement();
+	    	ResultSet staff= statement.executeQuery(query);
+	    	staff.next();
+	    	if(athlete.getInt(1) == 1)
+	    		details.put("member_type", "athlete");            		
+	    	if(official.getInt(1) == 1)
+	    		details.put("member_type", "official");
+	    	if(staff.getInt(1) == 1)
+	    		details.put("member_type", "staff");
+	    	query = "SELECT *"
+					 + "FROM Member NATURAL JOIN\n"
+					 + "Country JOIN\n"
+					 + "Place ON (accommodation = place_id)\n"
+					 + "WHERE member_id = '" + memberID + "\';";
+	    	statement = conn.createStatement();
+	    	ResultSet rset = statement.executeQuery(query);
+	    	rset.next();
+	    	details.put("member_id", memberID);
+	    	details.put("title", rset.getString("title"));
+	    	details.put("first_name", rset.getString("given_names").split(" ")[0]);
+	    	details.put("family_name", rset.getString("family_name"));
+	    	details.put("country_name", rset.getString("country_name"));
+	    	details.put("residence", rset.getString("place_name"));
+	    	
+	    	//TODO
+	    	statement = conn.createStatement();
+	    	query = String.format("SELECT COUNT(*)\n"
+	    						+ "FROM booking\n"
+	    						+ "WHERE booked_for  = \'%s\';", memberID);
+	    	rset = statement.executeQuery(query);
+	    	rset.next();
+	    	details.put("num_bookings", rset.getInt("count"));
+	    	
+	    	// Some attributes fetched may depend upon member_type
+	    	// This is for an athlete
+	    	//TODO
+	    	if(details.get("member_type").equals("athlete")){
+	    		statement = conn.createStatement();
+	    		query = String.format("SELECT COUNT(*)\n"
+	    							+ "FROM Participates\n"
+	    							+ "WHERE athlete_id = \'%s\'\n"
+	    							+ "AND medal = 'G';", memberID);
+	    		rset = statement.executeQuery(query);
+	    		rset.next();
+	    		details.put("num_gold", rset.getInt(1));
+	    		statement = conn.createStatement();
+	    		query = String.format("SELECT COUNT(*)\n"
+	    							+ "FROM Participates\n"
+	    							+ "WHERE athlete_id = \'%s\'\n"
+	    							+ "AND medal = 'S';", memberID);
+	    		rset = statement.executeQuery(query);
+	    		rset.next();
+	        	details.put("num_silver", rset.getInt(1));
+	        	statement = conn.createStatement();
+	    		query = String.format("SELECT COUNT(*)\n"
+	    							+ "FROM Participates\n"
+	    							+ "WHERE athlete_id = \'%s\'\n"
+	    							+ "AND medal = 'B';", memberID);
+	    		rset = statement.executeQuery(query);
+	    		rset.next();
+	        	details.put("num_bronze", rset.getInt(1));
+		    }    	
+	        statement.close();
+    	}
+    	finally{
+    		reallyClose(conn);
     	}
     	
-        statement.close();
         return details;
     }
 
@@ -206,22 +213,27 @@ public class DatabaseBackend {
 
         ArrayList<HashMap<String, Object>> events = new ArrayList<>();
         Connection conn = getConnection();
-        Statement statement = conn.createStatement();
-        String query = String.format("SELECT *\n"
-        							+ "FROM Sport NATURAL JOIN\n"
-        							+ "		EVENT JOIN\n"
-        							+ "		Place ON (sport_venue = place_id)\n"
-        							+ "WHERE sport_id = %d;", sportname);
-        ResultSet rset = statement.executeQuery(query);
-        while(rset.next()){
-        	HashMap<String,Object> event1 = new HashMap<String,Object>();
-            event1.put("event_id", rset.getString("event_id"));
-            event1.put("sport_id", rset.getString("sport_id"));
-            event1.put("event_name", rset.getString("event_name"));
-            event1.put("event_gender", rset.getString("event_gender"));
-            event1.put("sport_venue", rset.getString("place_name"));
-            event1.put("event_start", rset.getDate("event_start"));
-            events.add(event1);	
+        try{
+	        Statement statement = conn.createStatement();
+	        String query = String.format("SELECT *\n"
+	        							+ "FROM Sport NATURAL JOIN\n"
+	        							+ "		EVENT JOIN\n"
+	        							+ "		Place ON (sport_venue = place_id)\n"
+	        							+ "WHERE sport_id = %d;", sportname);
+	        ResultSet rset = statement.executeQuery(query);
+	        while(rset.next()){
+	        	HashMap<String,Object> event1 = new HashMap<String,Object>();
+	            event1.put("event_id", rset.getString("event_id"));
+	            event1.put("sport_id", rset.getString("sport_id"));
+	            event1.put("event_name", rset.getString("event_name"));
+	            event1.put("event_gender", rset.getString("event_gender"));
+	            event1.put("sport_venue", rset.getString("place_name"));
+	            event1.put("event_start", rset.getDate("event_start"));
+	            events.add(event1);	
+	        }
+        }
+        finally{
+        	reallyClose(conn);
         }
         return events;
     }
@@ -238,33 +250,42 @@ public class DatabaseBackend {
 
     	ArrayList<HashMap<String, Object>> results = new ArrayList<>();
     	Connection conn = getConnection();
-        Statement statement = conn.createStatement();
-        String query = String.format("SELECT *\n"
-        						   + "FROM Event NATURAL JOIN\n"
-        						   + "Participates JOIN\n"
-        						   + "Member ON (athlete_id = member_id) NATURAL JOIN\n"
-        						   + "COUNTRY\n"
-        						   + "WHERE event_id = \'%s\';", eventId);
-        ResultSet rset = statement.executeQuery(query);
-    	while(rset.next()){
-    		HashMap<String, Object> result = new HashMap<>();
-    		result.put("participant", String.format("%s, %s",rset.getString("family_name"), rset.getString("give_names").split(" ")[0]));
-    		result.put("country_name", rset.getString("country_name"));
-    		switch(rset.getString("medal")){
-    			case "G":
-    				result.put("medal", "Gold");
-    				break;
-    			case "S":
-    				result.put("medal", "Silver");
-    				break;
-    			case "B":
-    				result.put("medal", "Bronze");
-    				break;
-    			default:
-    				result.put("medal", "loser");
-    		}
-    		results.add(result);
+    	try{
+		    Statement statement = conn.createStatement();
+		    String query = String.format("SELECT *\n"
+		    						   + "FROM Event NATURAL JOIN\n"
+		    						   + "Participates JOIN\n"
+		    						   + "Member ON (athlete_id = member_id) NATURAL JOIN\n"
+		    						   + "COUNTRY\n"
+		    						   + "WHERE event_id = '%s';", eventId);
+		    ResultSet rset = statement.executeQuery(query);
+			while(rset.next()){
+				HashMap<String, Object> result = new HashMap<>();
+				result.put("participant", String.format("%s, %s",rset.getString("family_name"), rset.getString("give_names").split(" ")[0]));
+				result.put("country_name", rset.getString("country_name"));
+				switch(rset.getString("medal")){
+					case "G":
+						result.put("medal", "Gold");
+						break;
+					case "S":
+						result.put("medal", "Silver");
+						break;
+					case "B":
+						result.put("medal", "Bronze");
+						break;
+					default:
+						result.put("medal", "loser");
+				}
+				results.add(result);
+			}
     	}
+    	catch(SQLException e){
+    		throw e;
+    	}
+    	finally{
+    		reallyClose(conn);
+    	}
+    	
         return results;
     }
 
@@ -287,47 +308,57 @@ public class DatabaseBackend {
         Statement statement = conn.createStatement();
         String query = String.format("SELECT *\n"
         			 + "FROM Journy\n"
-        			 + "WHERE from_place = \'%s\'\n"
+        			 + "WHERE from_place LIKE '%%s%'\n"
         			 + "AND to_place = \'%s\'\n"
         			 + "AND depart_time = %s", fromPlace, toPlace, journeyDate);
         ResultSet rset = statement.executeQuery(query);
         while(rset.next()){
         	HashMap<String,Object> journey = new HashMap<String,Object>();
-            journey.put("journey_id", Integer.valueOf(17));
-            journey.put("vehicle_code", "XYZ124");
-            journey.put("origin_name", "SIT");
-            journey.put("dest_name", "Olympic Park");
-            journey.put("when_departs", new Date());
-            journey.put("when_arrives", new Date());
-            journey.put("available_seats", Integer.valueOf(3));
+            journey.put("journey_id", rset.getString(""));
+            journey.put("vehicle_code", rset.getString(""));
+            journey.put("origin_name", rset.getString(""));
+            journey.put("dest_name", rset.getString(""));
+            journey.put("when_departs", rset.getDate(""));
+            journey.put("when_arrives", rset.getDate(""));
+            journey.put("available_seats", Integer.valueOf(rset.getInt("")));
             journeys.add(journey);
             	
-        }        
+        }
+        conn.close();
         return journeys;
     }
     
-    ArrayList<HashMap<String,Object>> getMemberBookings(String memberID) throws OlympicsDBException {
+    ArrayList<HashMap<String,Object>> getMemberBookings(String memberID) throws Exception {
         ArrayList<HashMap<String,Object>> bookings = new ArrayList<HashMap<String,Object>>();
-        
-        // FIXME: DUMMY FUNCTION NEEDS TO BE PROPERLY IMPLEMENTED
-        HashMap<String,Object> bookingex1 = new HashMap<String,Object>();
-        bookingex1.put("journey_id", Integer.valueOf(17));
-        bookingex1.put("vehicle_code", "XYZ124");
-        bookingex1.put("origin_name", "SIT");
-        bookingex1.put("dest_name", "Olympic Park");
-        bookingex1.put("when_departs", new Date());
-        bookingex1.put("when_arrives", new Date());
-        bookings.add(bookingex1);
-
-        HashMap<String,Object> bookingex2 = new HashMap<String,Object>();
-        bookingex2.put("journey_id", Integer.valueOf(25));
-        bookingex2.put("vehicle_code", "ABC789");
-        bookingex2.put("origin_name", "Olympic Park");
-        bookingex2.put("dest_name", "Sydney Airport");
-        bookingex2.put("when_departs", new Date());
-        bookingex2.put("when_arrives", new Date());
-        bookings.add(bookingex2);
-        
+        Exception e = null;
+        Boolean chuck = false;
+        Connection conn = null;
+        try{
+        	conn = getConnection();
+        	Statement statement = conn.createStatement();
+        	String query = "";
+        	ResultSet rset = statement.executeQuery(query);
+        	while(rset.next()){
+        		HashMap<String, Object> booking = new HashMap<>();
+        		booking.put("journey_id", Integer.valueOf(17));
+                booking.put("vehicle_code", "XYZ124");
+                booking.put("origin_name", "SIT");
+                booking.put("dest_name", "Olympic Park");
+                booking.put("when_departs", new Date());
+                booking.put("when_arrives", new Date());		
+        		bookings.add(booking);
+        	}
+        	
+        }
+        catch(SQLException ex){
+        	chuck = true;
+        	e = ex;
+        }
+        finally{
+        	reallyClose(conn);
+        }
+        if(chuck)
+        	throw e;
         return bookings;
     }
                 
@@ -389,28 +420,34 @@ public class DatabaseBackend {
         return booking;
     }
     
-	public ArrayList<HashMap<String, Object>> getSports() throws OlympicsDBException {
+	public ArrayList<HashMap<String, Object>> getSports() throws Exception {
 		ArrayList<HashMap<String,Object>> sports = new ArrayList<HashMap<String,Object>>();
-		
-		// FIXME: DUMMY FUNCTION NEEDS TO BE PROPERLY IMPLEMENTED
-		HashMap<String,Object> sport1 = new HashMap<String,Object>();
-		sport1.put("sport_id", Integer.valueOf(1));
-		sport1.put("sport_name", "Chillaxing");
-		sport1.put("discipline", "Couch Potatoing");
-		sports.add(sport1);
-		
-		HashMap<String,Object> sport2 = new HashMap<String,Object>();
-		sport2.put("sport_id", Integer.valueOf(2));
-		sport2.put("sport_name", "Frobnicating");
-		sport2.put("discipline", "Tweaking");
-		sports.add(sport2);
-		
-		HashMap<String,Object> sport3 = new HashMap<String,Object>();
-		sport3.put("sport_id", Integer.valueOf(3));
-		sport3.put("sport_name", "Frobnicating");
-		sport3.put("discipline", "Fiddling");
-		sports.add(sport3);
-		
+		boolean chuck = false;
+		Exception e = null;
+		Connection conn = null;
+		try{
+			conn = getConnection();
+			Statement statement = conn.createStatement();
+			//TODO
+			String query = "";
+			ResultSet rset = statement.executeQuery(query);
+			while(rset.next()){
+				HashMap<String, Object> sport = new HashMap<>();
+				sport.put("sport_id", Integer.valueOf(rset.getInt("sport_id")));
+				sport.put("sport_name", rset.getString("sport_name"));
+				sport.put("discipline", rset.getString("discipline"));
+				sports.add(sport);
+			}
+		}
+		catch(SQLException ex){
+			e = ex;
+			chuck = true;
+		}
+		finally{
+			reallyClose(conn);
+		}
+		if(chuck)
+			throw e;
 		return sports;
 	}
 
@@ -432,9 +469,10 @@ public class DatabaseBackend {
      */
     DatabaseBackend(InputStream config) throws ClassNotFoundException, OlympicsDBException {
     	Properties props = new Properties();
-    	try {
+    	try{
 			props.load(config);
-		} catch (IOException e) {
+		} 
+    	catch(IOException e){
 			throw new OlympicsDBException("Couldn't read config data",e);
 		}
 
@@ -446,23 +484,28 @@ public class DatabaseBackend {
     	
         // Load JDBC driver and setup connection details
     	String vendor = props.getProperty("dbvendor");
-		if(vendor==null) {
+		if(vendor==null)
     		throw new OlympicsDBException("No vendor config data");
-    	} else if ("postgresql".equals(vendor)) { 
+		else if("postgresql".equals(vendor)){ 
     		Class.forName("org.postgresql.Driver");
     		connstring = "jdbc:postgresql://" + server + ":" + port + "/" + dbname;
-    	} else if ("oracle".equals(vendor)) {
+    	} 
+    	else if("oracle".equals(vendor)){
     		Class.forName("oracle.jdbc.driver.OracleDriver");
     		connstring = "jdbc:oracle:thin:@" + server + ":" + port + ":" + dbname;
-    	} else throw new OlympicsDBException("Unknown database vendor: " + vendor);
+    	} 
+    	else 
+    		throw new OlympicsDBException("Unknown database vendor: " + vendor);
 		
 		// test the connection
 		Connection conn = null;
-		try {
+		try{
 			conn = getConnection();
-		} catch (SQLException e) {
+		} 
+		catch(SQLException e){
 			throw new OlympicsDBException("Couldn't open connection", e);
-		} finally {
+		} 
+		finally{
 			reallyClose(conn);
 		}
     }
@@ -474,9 +517,10 @@ public class DatabaseBackend {
 	 */
 	private void reallyClose(Connection conn) {
 		if(conn!=null)
-			try {
+			try{
 				conn.close();
-			} catch (SQLException ignored) {}
+			} 
+			catch(SQLException ignored){}
 	}
 
     /**
@@ -485,9 +529,7 @@ public class DatabaseBackend {
      * @throws SQLException if a DB connection cannot be established
      */
     private Connection getConnection() throws SQLException {
-        Connection conn;
-        conn = DriverManager.getConnection(connstring, dbUser, dbPass);
-        return conn;
+        return DriverManager.getConnection(connstring, dbUser, dbPass);
     }
 
 

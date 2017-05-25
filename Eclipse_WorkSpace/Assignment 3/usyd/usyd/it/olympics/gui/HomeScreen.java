@@ -1,6 +1,7 @@
 package usyd.it.olympics.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Font;
 import java.util.HashMap;
 
 import javax.swing.JTextArea;
@@ -29,7 +30,10 @@ public class HomeScreen extends GuiScreen {
         String message = "Hello " + details.get("title") + " "
 	    	+ details.get("first_name") + " "
 	    	+ details.get("family_name");
-        message = message.concat("\nYou are an: " + details.get("member_type"));
+        if(details.get("member_type").equals("staff"))
+        	message = message.concat("\nYou are a " + details.get("member_type") + " member");
+        else
+        	message = message.concat("\nYou are an " + details.get("member_type"));
         message = message.concat("\nYou are from: " + details.get("country_name"));
         message = message.concat("\nYour live at: " + details.get("residence"));
         
@@ -42,7 +46,7 @@ public class HomeScreen extends GuiScreen {
         }
         message = message.concat("\nYou have made " + details.get("num_bookings") +" bookings");
 
-    	
-        description.setText(message);		
+        description.setText(message);
+        description.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 25));
 	}
 }

@@ -59,9 +59,10 @@ public final class GuiFrontEnd {
 
     public GuiFrontEnd(OlympicsDBClient root) {
         client = root;
-        window = new JFrame("Client GUI");
+        window = new JFrame("");
         window.setPreferredSize(new Dimension(800, 400));
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        window.setResizable(false);
 
         // This will be the content pane for the window
         JPanel content = new JPanel();
