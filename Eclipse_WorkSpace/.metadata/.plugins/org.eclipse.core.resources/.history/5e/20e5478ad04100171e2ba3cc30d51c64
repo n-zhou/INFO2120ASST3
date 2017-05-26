@@ -117,15 +117,15 @@ public class DatabaseBackend {
     	try{
 	    	conn = getConnection();
 	    	details = new HashMap<String,Object>();
-	    	String query = String.format("SELECT COUNT(*) FROM Athlete WHERE LOWER(member_id) = LOWER('%s')", memberID);
+	    	String query = String.format("SELECT COUNT(*) FROM Athlete WHERE LOWER(member_id) = LOWER(\'%s\')", memberID);
 	    	Statement statement = conn.createStatement();
 	    	ResultSet athlete = statement.executeQuery(query);
 	    	athlete.next();
-	    	query = String.format("SELECT COUNT(*) FROM official WHERE LOWER(member_id) = LOWER('%s')", memberID);
+	    	query = String.format("SELECT COUNT(*) FROM official WHERE LOWER(member_id) = LOWER(\'%s\')", memberID);
 	    	statement = conn.createStatement();
 	    	ResultSet official= statement.executeQuery(query);
 	    	official.next();
-	    	query = String.format("SELECT COUNT(*) FROM staff WHERE LOWER(member_id) = LOWER('%s')", memberID);
+	    	query = String.format("SELECT COUNT(*) FROM staff WHERE LOWER(member_id) = LOWER(\'%s\')", memberID);
 	    	statement = conn.createStatement();
 	    	ResultSet staff= statement.executeQuery(query);
 	    	staff.next();
@@ -213,37 +213,28 @@ public class DatabaseBackend {
 
         ArrayList<HashMap<String, Object>> events = new ArrayList<>();
         Connection conn = getConnection();
-        SQLException e = null;
-        boolean chuck = false;
         try{
 	        Statement statement = conn.createStatement();
 	        String query = String.format("SELECT *\n"
 	        							+ "FROM Sport NATURAL JOIN\n"
-	        							+ "		EVENT LEFT JOIN\n"
+	        							+ "		EVENT JOIN\n"
 	        							+ "		Place ON (sport_venue = place_id)\n"
 	        							+ "WHERE sport_id = %d;", sportname);
-	        System.out.println(query);
 	        ResultSet rset = statement.executeQuery(query);
 	        while(rset.next()){
-	        	HashMap<String,Object> event = new HashMap<String,Object>();
-	            event.put("event_id", rset.getInt("event_id"));
-	            event.put("sport_id", rset.getString("sport_id"));
-	            event.put("event_name", rset.getString("event_name"));
-	            event.put("event_gender", rset.getString("event_gender"));
-	            event.put("sport_venue", rset.getString("place_name"));
-	            event.put("event_start", rset.getDate("event_start"));
-	            events.add(event);	
+	        	HashMap<String,Object> event1 = new HashMap<String,Object>();
+	            event1.put("event_id", rset.getString("event_id"));
+	            event1.put("sport_id", rset.getString("sport_id"));
+	            event1.put("event_name", rset.getString("event_name"));
+	            event1.put("event_gender", rset.getString("event_gender"));
+	            event1.put("sport_venue", rset.getString("place_name"));
+	            event1.put("event_start", rset.getDate("event_start"));
+	            events.add(event1);	
 	        }
-        }
-        catch(SQLException ex){
-        	chuck = true;
-        	e = ex;
         }
         finally{
         	reallyClose(conn);
         }
-        if(chuck)
-        	throw e;
         return events;
     }
 
@@ -267,11 +258,10 @@ public class DatabaseBackend {
 		    						   + "Member ON (athlete_id = member_id) NATURAL JOIN\n"
 		    						   + "COUNTRY\n"
 		    						   + "WHERE event_id = '%s';", eventId);
-		    System.out.println(query);
 		    ResultSet rset = statement.executeQuery(query);
 			while(rset.next()){
 				HashMap<String, Object> result = new HashMap<>();
-				result.put("participant", String.format("%s, %s",rset.getString("family_name"), rset.getString("given_names").split(" ")[0]));
+				result.put("participant", String.format("%s, %s",rset.getString("family_name"), rset.getString("give_names").split(" ")[0]));
 				result.put("country_name", rset.getString("country_name"));
 				switch(rset.getString("medal")){
 					case "G":
@@ -318,10 +308,9 @@ public class DatabaseBackend {
         Statement statement = conn.createStatement();
         String query = String.format("SELECT *\n"
         			 + "FROM Journy\n"
-        			 + "WHERE LOWER(from_place) LIKE LOWER('%%s%')\n"
-        			 + "AND LOWER(to_place) LIKE LOWER('%%s%')\n"
+        			 + "WHERE from_place LIKE '%%s%'\n"
+        			 + "AND to_place = \'%s\'\n"
         			 + "AND depart_time = %s", fromPlace, toPlace, journeyDate);
-        System.out.println(query);
         ResultSet rset = statement.executeQuery(query);
         while(rset.next()){
         	HashMap<String,Object> journey = new HashMap<String,Object>();
@@ -440,7 +429,7 @@ public class DatabaseBackend {
 			conn = getConnection();
 			Statement statement = conn.createStatement();
 			//TODO
-			String query = String.format("SELECT * FROM Sport;");
+			String query = "";
 			ResultSet rset = statement.executeQuery(query);
 			while(rset.next()){
 				HashMap<String, Object> sport = new HashMap<>();

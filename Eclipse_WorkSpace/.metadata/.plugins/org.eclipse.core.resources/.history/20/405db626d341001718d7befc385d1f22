@@ -213,8 +213,7 @@ public class DatabaseBackend {
 
         ArrayList<HashMap<String, Object>> events = new ArrayList<>();
         Connection conn = getConnection();
-        SQLException e = null;
-        boolean chuck = false;
+        Exception e = null;
         try{
 	        Statement statement = conn.createStatement();
 	        String query = String.format("SELECT *\n"
@@ -222,11 +221,10 @@ public class DatabaseBackend {
 	        							+ "		EVENT LEFT JOIN\n"
 	        							+ "		Place ON (sport_venue = place_id)\n"
 	        							+ "WHERE sport_id = %d;", sportname);
-	        System.out.println(query);
 	        ResultSet rset = statement.executeQuery(query);
 	        while(rset.next()){
 	        	HashMap<String,Object> event = new HashMap<String,Object>();
-	            event.put("event_id", rset.getInt("event_id"));
+	            event.put("event_id", rset.getString("event_id"));
 	            event.put("sport_id", rset.getString("sport_id"));
 	            event.put("event_name", rset.getString("event_name"));
 	            event.put("event_gender", rset.getString("event_gender"));
@@ -235,15 +233,12 @@ public class DatabaseBackend {
 	            events.add(event);	
 	        }
         }
-        catch(SQLException ex){
-        	chuck = true;
-        	e = ex;
+        catch(Exception e){
+        	
         }
         finally{
         	reallyClose(conn);
         }
-        if(chuck)
-        	throw e;
         return events;
     }
 
@@ -267,11 +262,10 @@ public class DatabaseBackend {
 		    						   + "Member ON (athlete_id = member_id) NATURAL JOIN\n"
 		    						   + "COUNTRY\n"
 		    						   + "WHERE event_id = '%s';", eventId);
-		    System.out.println(query);
 		    ResultSet rset = statement.executeQuery(query);
 			while(rset.next()){
 				HashMap<String, Object> result = new HashMap<>();
-				result.put("participant", String.format("%s, %s",rset.getString("family_name"), rset.getString("given_names").split(" ")[0]));
+				result.put("participant", String.format("%s, %s",rset.getString("family_name"), rset.getString("give_names").split(" ")[0]));
 				result.put("country_name", rset.getString("country_name"));
 				switch(rset.getString("medal")){
 					case "G":
@@ -440,7 +434,7 @@ public class DatabaseBackend {
 			conn = getConnection();
 			Statement statement = conn.createStatement();
 			//TODO
-			String query = String.format("SELECT * FROM Sport;");
+			String query = "";
 			ResultSet rset = statement.executeQuery(query);
 			while(rset.next()){
 				HashMap<String, Object> sport = new HashMap<>();
