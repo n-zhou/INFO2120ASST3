@@ -347,7 +347,9 @@ public class DatabaseBackend {
         try{
         	conn = getConnection();
         	Statement statement = conn.createStatement();
-        	String query = "";
+        	String query = String.format("SELECT journey_id, vehicle_code, from_place, to_place, depart_time\n"
+					   + "FROM Journey NATURAL JOIN Booking\n"
+					   + "where booked_for = '%s';", memberID);
         	ResultSet rset = statement.executeQuery(query);
         	while(rset.next()){
         		HashMap<String, Object> booking = new HashMap<>();
@@ -393,8 +395,8 @@ public class DatabaseBackend {
         Statement statement = conn.createStatement();
         
         String query = String.format("SELECT *\n"
-   			 + "FROM Journey\n"
-   			 + "WHERE journey_id = %s", journey_id);
+   			 + "FROM Journey NATURAL JOIN Vehicle\n"
+   			 + "WHERE journey_id = '%s';", journey_id);
         System.out.println(query);
         ResultSet rset = statement.executeQuery(query);
         
@@ -429,21 +431,22 @@ public class DatabaseBackend {
     	conn = getConnection();
         Statement statement = conn.createStatement();
         
-        String query = String.format("SELECT *\n"
-   			 + "FROM Journey\n"
-   			 + "WHERE journey_id = %s", journey_id);
-        System.out.println(query);
+        String query = "";
         ResultSet rset = statement.executeQuery(query);
         
         while(rset.next()) {
-    	details.put("journey_id", rset.getString("journey_id"));
-    	details.put("vehicle_code", rset.getString("vehicle_code"));
-        details.put("origin_name", rset.getString("from_place"));
-        details.put("dest_name", rset.getString("to_place"));
-        details.put("when_departs", rset.getDate("depart_time"));
-        details.put("when_arrives", new Date());
-        details.put("capacity", Integer.valueOf(rset.getInt("capacity")));
-        details.put("nbooked", Integer.valueOf(rset.getInt("nbooked")));
+    	/*HashMap<String,Object> booking = null;
+    	
+        
+    	booking = new HashMap<String,Object>();
+        booking.put("vehicle", "TR870R");
+    	booking.put("start_day", "21/12/2020");
+    	booking.put("start_time", new Date());
+    	booking.put("to", "SIT");
+    	booking.put("from", "Wentworth");
+    	booking.put("booked_by", "Mike");
+    	booking.put("whenbooked", new Date());
+    	return booking;*/
         }
         
         
