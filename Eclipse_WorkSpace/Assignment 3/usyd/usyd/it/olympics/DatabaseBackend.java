@@ -219,7 +219,7 @@ public class DatabaseBackend {
 	        Statement statement = conn.createStatement();
 	        String query = String.format("SELECT *\n"
 	        							+ "FROM Sport NATURAL JOIN\n"
-	        							+ "		EVENT LEFT JOIN\n"
+	        							+ "		Event LEFT JOIN\n"
 	        							+ "		Place ON (sport_venue = place_id)\n"
 	        							+ "WHERE sport_id = %d;", sportname);
 	        System.out.println(query);
@@ -265,7 +265,7 @@ public class DatabaseBackend {
 		    						   + "FROM Event NATURAL JOIN\n"
 		    						   + "Participates JOIN\n"
 		    						   + "Member ON (athlete_id = member_id) NATURAL JOIN\n"
-		    						   + "COUNTRY\n"
+		    						   + "Country\n"
 		    						   + "WHERE event_id = '%s';", eventId);
 		    System.out.println(query);
 		    ResultSet rset = statement.executeQuery(query);
@@ -317,7 +317,7 @@ public class DatabaseBackend {
         Connection conn = getConnection();
         Statement statement = conn.createStatement();
         String query = String.format("SELECT *\n"
-        			 + "FROM Journy\n"
+        			 + "FROM Journey\n"
         			 + "WHERE LOWER(from_place) LIKE LOWER('%%s%')\n"
         			 + "AND LOWER(to_place) LIKE LOWER('%%s%')\n"
         			 + "AND depart_time = %s", fromPlace, toPlace, journeyDate);
@@ -325,20 +325,20 @@ public class DatabaseBackend {
         ResultSet rset = statement.executeQuery(query);
         while(rset.next()){
         	HashMap<String,Object> journey = new HashMap<String,Object>();
-            journey.put("journey_id", rset.getString(""));
-            journey.put("vehicle_code", rset.getString(""));
-            journey.put("origin_name", rset.getString(""));
-            journey.put("dest_name", rset.getString(""));
-            journey.put("when_departs", rset.getDate(""));
-            journey.put("when_arrives", rset.getDate(""));
-            journey.put("available_seats", Integer.valueOf(rset.getInt("")));
+            journey.put("journey_id", rset.getString("journey_id"));
+            journey.put("vehicle_code", rset.getString("vehicle_code"));
+            journey.put("origin_name", rset.getString("origin_name"));
+            journey.put("dest_name", rset.getString("dest_name"));
+            journey.put("when_departs", rset.getDate("when_departs"));
+            journey.put("when_arrives", rset.getDate("when_arrives"));
+            journey.put("available_seats", Integer.valueOf(rset.getInt("available_seats")));
             journeys.add(journey);
             	
         }
         conn.close();
         return journeys;
     }
-    
+    //TODO
     ArrayList<HashMap<String,Object>> getMemberBookings(String memberID) throws Exception {
         ArrayList<HashMap<String,Object>> bookings = new ArrayList<HashMap<String,Object>>();
         Exception e = null;
@@ -379,8 +379,10 @@ public class DatabaseBackend {
      * @return Various details of journey - see JourneyDetails.java
      * @throws OlympicsDBException
      */
-    public HashMap<String,Object> getJourneyDetails(int bay) throws OlympicsDBException {
-        // FIXME: REPLACE FOLLOWING LINES WITH REAL OPERATION
+    public HashMap<String,Object> getJourneyDetails(int journey_id) throws OlympicsDBException {
+        //TODO
+    	
+    	// FIXME: REPLACE FOLLOWING LINES WITH REAL OPERATION
         // See the constructor in BayDetails.java
     	HashMap<String,Object> details = new HashMap<String,Object>();
 
@@ -398,7 +400,7 @@ public class DatabaseBackend {
     
     public HashMap<String,Object> makeBooking(String byStaff, String forMember, Date departs) throws OlympicsDBException {
     	HashMap<String,Object> booking = null;
-    	
+    	//TODO
         // FIXME: DUMMY FUNCTION NEEDS TO BE PROPERLY IMPLEMENTED
     	booking = new HashMap<String,Object>();
         booking.put("vehicle", "TR870R");
