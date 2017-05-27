@@ -325,13 +325,13 @@ public class DatabaseBackend {
         ResultSet rset = statement.executeQuery(query);
         while(rset.next()){
         	HashMap<String,Object> journey = new HashMap<String,Object>();
-            journey.put("journey_id", rset.getString("journey_id"));
+            journey.put("journey_id", rset.getInt("journey_id"));
             journey.put("vehicle_code", rset.getString("vehicle_code"));
-            journey.put("origin_name", rset.getString("from_place"));
-            journey.put("dest_name", rset.getString("to_place"));
+            journey.put("origin_name", rset.getInt("from_place"));
+            journey.put("dest_name", rset.getInt("to_place"));
             journey.put("when_departs", rset.getDate("depart_time"));
             journey.put("when_arrives", new Date());
-            journey.put("available_seats", Integer.valueOf(rset.getInt("available_seats")));
+            journey.put("available_seats", rset.getInt("capacity"));
             journeys.add(journey);
             	
         }
@@ -353,10 +353,10 @@ public class DatabaseBackend {
         	ResultSet rset = statement.executeQuery(query);
         	while(rset.next()){
         		HashMap<String, Object> booking = new HashMap<>();
-        		booking.put("journey_id", rset.getString("journey_id"));
+        		booking.put("journey_id", rset.getInt("journey_id"));
                 booking.put("vehicle_code", rset.getString("vehicle_code"));
-                booking.put("origin_name", rset.getString("from_place"));
-                booking.put("dest_name", rset.getString("to_place"));
+                booking.put("origin_name", rset.getInt("from_place"));
+                booking.put("dest_name", rset.getInt("to_place"));
                 booking.put("when_departs", rset.getDate("depart_time"));
                 booking.put("when_arrives", new Date());		
         		bookings.add(booking);
@@ -396,19 +396,19 @@ public class DatabaseBackend {
         
         String query = String.format("SELECT *\n"
    			 + "FROM Journey NATURAL JOIN Vehicle\n"
-   			 + "WHERE journey_id = '%s';", journey_id);
+   			 + "WHERE journey_id = '%s'", journey_id);
         System.out.println(query);
         ResultSet rset = statement.executeQuery(query);
         
         while(rset.next()) {
-    	details.put("journey_id", rset.getString("journey_id"));
+    	details.put("journey_id", rset.getInt("journey_id"));
     	details.put("vehicle_code", rset.getString("vehicle_code"));
-        details.put("origin_name", rset.getString("from_place"));
-        details.put("dest_name", rset.getString("to_place"));
+        details.put("origin_name", rset.getInt("from_place"));
+        details.put("dest_name", rset.getInt("to_place"));
         details.put("when_departs", rset.getDate("depart_time"));
         details.put("when_arrives", new Date());
-        details.put("capacity", Integer.valueOf(rset.getInt("capacity")));
-        details.put("nbooked", Integer.valueOf(rset.getInt("nbooked")));
+        details.put("capacity", rset.getInt("capacity"));
+        details.put("nbooked", rset.getInt("nbooked"));
         }
         
         
