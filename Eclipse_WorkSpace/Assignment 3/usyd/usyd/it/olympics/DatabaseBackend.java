@@ -453,7 +453,7 @@ public class DatabaseBackend {
     	
     	return booking;
     }
-    
+    //NICK IS GAY
     public HashMap<String,Object> getBookingDetails(String memberID, Integer journeyId) throws OlympicsDBException {
     	HashMap<String,Object> booking = null;
 
