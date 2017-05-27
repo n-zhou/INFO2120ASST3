@@ -327,10 +327,10 @@ public class DatabaseBackend {
         	HashMap<String,Object> journey = new HashMap<String,Object>();
             journey.put("journey_id", rset.getString("journey_id"));
             journey.put("vehicle_code", rset.getString("vehicle_code"));
-            journey.put("origin_name", rset.getString("origin_name"));
-            journey.put("dest_name", rset.getString("dest_name"));
-            journey.put("when_departs", rset.getDate("when_departs"));
-            journey.put("when_arrives", rset.getDate("when_arrives"));
+            journey.put("origin_name", rset.getString("from_place"));
+            journey.put("dest_name", rset.getString("to_place"));
+            journey.put("when_departs", rset.getDate("depart_time"));
+            journey.put("when_arrives", new Date());
             journey.put("available_seats", Integer.valueOf(rset.getInt("available_seats")));
             journeys.add(journey);
             	
@@ -351,11 +351,11 @@ public class DatabaseBackend {
         	ResultSet rset = statement.executeQuery(query);
         	while(rset.next()){
         		HashMap<String, Object> booking = new HashMap<>();
-        		booking.put("journey_id", Integer.valueOf(17));
-                booking.put("vehicle_code", "XYZ124");
-                booking.put("origin_name", "SIT");
-                booking.put("dest_name", "Olympic Park");
-                booking.put("when_departs", new Date());
+        		booking.put("journey_id", rset.getString("journey_id"));
+                booking.put("vehicle_code", rset.getString("vehicle_code"));
+                booking.put("origin_name", rset.getString("from_place"));
+                booking.put("dest_name", rset.getString("to_place"));
+                booking.put("when_departs", rset.getDate("depart_time"));
                 booking.put("when_arrives", new Date());		
         		bookings.add(booking);
         	}
@@ -383,33 +383,74 @@ public class DatabaseBackend {
         //TODO
     	
     	// FIXME: REPLACE FOLLOWING LINES WITH REAL OPERATION
-        // See the constructor in BayDetails.java
+        
     	HashMap<String,Object> details = new HashMap<String,Object>();
-
-    	details.put("journey_id", Integer.valueOf(17));
-    	details.put("vehicle_code", "XYZ124");
-        details.put("origin_name", "SIT");
-        details.put("dest_name", "Olympic Park");
-        details.put("when_departs", new Date());
+    	
+        
+        Connection conn;
+        try {
+    	conn = getConnection();
+        Statement statement = conn.createStatement();
+        
+        String query = String.format("SELECT *\n"
+   			 + "FROM Journey\n"
+   			 + "WHERE journey_id = %s", journey_id);
+        System.out.println(query);
+        ResultSet rset = statement.executeQuery(query);
+        
+        while(rset.next()) {
+    	details.put("journey_id", rset.getString("journey_id"));
+    	details.put("vehicle_code", rset.getString("vehicle_code"));
+        details.put("origin_name", rset.getString("from_place"));
+        details.put("dest_name", rset.getString("to_place"));
+        details.put("when_departs", rset.getDate("depart_time"));
         details.put("when_arrives", new Date());
-        details.put("capacity", Integer.valueOf(6));
-        details.put("nbooked", Integer.valueOf(3));
+        details.put("capacity", Integer.valueOf(rset.getInt("capacity")));
+        details.put("nbooked", Integer.valueOf(rset.getInt("nbooked")));
+        }
+        
+        
+        } catch(SQLException e){
+    		
+    	}
+    	
     	
         return details;
     }
     
     public HashMap<String,Object> makeBooking(String byStaff, String forMember, Date departs) throws OlympicsDBException {
-    	HashMap<String,Object> booking = null;
+    	HashMap<String,Object> booking = new HashMap<String,Object>();
     	//TODO
         // FIXME: DUMMY FUNCTION NEEDS TO BE PROPERLY IMPLEMENTED
-    	booking = new HashMap<String,Object>();
-        booking.put("vehicle", "TR870R");
-    	booking.put("start_day", "21/12/2020");
-    	booking.put("start_time", new Date());
-    	booking.put("to", "SIT");
-    	booking.put("from", "Wentworth");
-    	booking.put("booked_by", "Mike");
-    	booking.put("whenbooked", new Date());
+    	
+    	
+    	Connection conn;
+        try {
+    	conn = getConnection();
+        Statement statement = conn.createStatement();
+        
+        String query = String.format("SELECT *\n"
+   			 + "FROM Journey\n"
+   			 + "WHERE journey_id = %s", journey_id);
+        System.out.println(query);
+        ResultSet rset = statement.executeQuery(query);
+        
+        while(rset.next()) {
+    	details.put("journey_id", rset.getString("journey_id"));
+    	details.put("vehicle_code", rset.getString("vehicle_code"));
+        details.put("origin_name", rset.getString("from_place"));
+        details.put("dest_name", rset.getString("to_place"));
+        details.put("when_departs", rset.getDate("depart_time"));
+        details.put("when_arrives", new Date());
+        details.put("capacity", Integer.valueOf(rset.getInt("capacity")));
+        details.put("nbooked", Integer.valueOf(rset.getInt("nbooked")));
+        }
+        
+        
+        } catch(SQLException e){
+    		
+    	}
+    	
     	return booking;
     }
     
