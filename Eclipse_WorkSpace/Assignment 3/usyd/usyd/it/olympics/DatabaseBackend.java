@@ -330,7 +330,7 @@ public class DatabaseBackend {
             journey.put("origin_name", rset.getInt("from_place"));
             journey.put("dest_name", rset.getInt("to_place"));
             journey.put("when_departs", rset.getDate("depart_time"));
-            journey.put("when_arrives", new Date());
+            journey.put("when_arrives", rset.getDate("arrive_time"));
             journey.put("available_seats", rset.getInt("capacity"));
             journeys.add(journey);
 
@@ -358,7 +358,7 @@ public class DatabaseBackend {
                 booking.put("origin_name", rset.getInt("from_place"));
                 booking.put("dest_name", rset.getInt("to_place"));
                 booking.put("when_departs", rset.getDate("depart_time"));
-                booking.put("when_arrives", new Date());
+                booking.put("when_arrives", rset.getDate("arrive_time"));
         		bookings.add(booking);
         	}
 
@@ -406,7 +406,7 @@ public class DatabaseBackend {
         details.put("origin_name", rset.getInt("from_place"));
         details.put("dest_name", rset.getInt("to_place"));
         details.put("when_departs", rset.getDate("depart_time"));
-        details.put("when_arrives", new Date());
+        details.put("when_arrives", rset.getDate("arrive_time"));
         details.put("capacity", rset.getInt("capacity"));
         details.put("nbooked", rset.getInt("nbooked"));
         }
