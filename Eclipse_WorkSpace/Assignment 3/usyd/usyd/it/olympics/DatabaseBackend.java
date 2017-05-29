@@ -4,8 +4,8 @@ package usyd.it.olympics;
 
 /**
  * Database back-end class for simple gui.
- * 
- * The DatabaseBackend class defined in this file holds all the methods to 
+ *
+ * The DatabaseBackend class defined in this file holds all the methods to
  * communicate with the database and pass the results back to the GUI.
  *
  *
@@ -27,8 +27,8 @@ import java.util.Properties;
 /**
  * Database interfacing backend for client. This class uses JDBC to connect to
  * the database, and provides methods to obtain query data.
- * 
- * Most methods return database information in the form of HashMaps (sets of 
+ *
+ * Most methods return database information in the form of HashMaps (sets of
  * key-value pairs), or ArrayLists of HashMaps for multiple results.
  *
  * @author Bryn Jeffries {@literal <bryn.jeffries@sydney.edu.au>}
@@ -47,16 +47,16 @@ public class DatabaseBackend {
     /// Student Defined Functions
     ///////////////////////////////
 
-	
+
     /////  Login and Member  //////
 
     /**
      * Validate memberID details
-     * 
+     *
      * Implements Core Functionality (a)
      *
      * @return true if username is for a valid memberID and password is correct
-     * @throws OlympicsDBException 
+     * @throws OlympicsDBException
      * @throws SQLException
      */
     public HashMap<String,Object> checkLogin(String member, char[] password) throws OlympicsDBException, SQLException  {
@@ -85,7 +85,7 @@ public class DatabaseBackend {
             	official.next();
             	staff.next();
             	if(athlete.getInt(1) == 1)
-            		details.put("member_type", "athlete");            		
+            		details.put("member_type", "athlete");
             	if(official.getInt(1) == 1)
             		details.put("member_type", "official");
             	if(staff.getInt(1) == 1)
@@ -97,19 +97,19 @@ public class DatabaseBackend {
         }
         finally{
         	reallyClose(conn);
-        }   
+        }
         return details;
     }
 
     /**
      * Obtain details for the current memberID
-     * @param memberID 
-     * @param member_type 
+     * @param memberID
+     * @param member_type
      *
      *
      * @return text to be displayed in the home screen
      * @throws OlympicsDBException
-     * @throws SQLException 
+     * @throws SQLException
      */
     public HashMap<String, Object> getMemberDetails(String memberID) throws OlympicsDBException, SQLException {
     	HashMap<String, Object> details = new HashMap<String, Object>();
@@ -130,7 +130,7 @@ public class DatabaseBackend {
 	    	ResultSet staff= statement.executeQuery(query);
 	    	staff.next();
 	    	if(athlete.getInt(1) == 1)
-	    		details.put("member_type", "athlete");            		
+	    		details.put("member_type", "athlete");
 	    	if(official.getInt(1) == 1)
 	    		details.put("member_type", "official");
 	    	if(staff.getInt(1) == 1)
@@ -149,7 +149,7 @@ public class DatabaseBackend {
 	    	details.put("family_name", rset.getString("family_name"));
 	    	details.put("country_name", rset.getString("country_name"));
 	    	details.put("residence", rset.getString("place_name"));
-	    	
+
 	    	//TODO
 	    	statement = conn.createStatement();
 	    	query = String.format("SELECT COUNT(*)\n"
@@ -158,7 +158,7 @@ public class DatabaseBackend {
 	    	rset = statement.executeQuery(query);
 	    	rset.next();
 	    	details.put("num_bookings", rset.getInt("count"));
-	    	
+
 	    	// Some attributes fetched may depend upon member_type
 	    	// This is for an athlete
 	    	//TODO
@@ -187,13 +187,13 @@ public class DatabaseBackend {
 	    		rset = statement.executeQuery(query);
 	    		rset.next();
 	        	details.put("num_bronze", rset.getInt(1));
-		    }    	
+		    }
 	        statement.close();
     	}
     	finally{
     		reallyClose(conn);
     	}
-    	
+
         return details;
     }
 
@@ -206,7 +206,7 @@ public class DatabaseBackend {
      * @param sportname the ID of the sport we are filtering by
      * @return List of the events for that sport
      * @throws OlympicsDBException
-     * @throws SQLException 
+     * @throws SQLException
      */
     ArrayList<HashMap<String, Object>> getEventsOfSport(Integer sportname) throws OlympicsDBException, SQLException {
         // FIXME: Replace the following with REAL OPERATIONS!
@@ -232,7 +232,7 @@ public class DatabaseBackend {
 	            event.put("event_gender", rset.getString("event_gender"));
 	            event.put("sport_venue", rset.getString("place_name"));
 	            event.put("event_start", rset.getDate("event_start"));
-	            events.add(event);	
+	            events.add(event);
 	        }
         }
         catch(SQLException ex){
@@ -252,7 +252,7 @@ public class DatabaseBackend {
      * @param eventId the key of the event
      * @return a hashmap for each result in the event.
      * @throws OlympicsDBException
-     * @throws SQLException 
+     * @throws SQLException
      */
     ArrayList<HashMap<String, Object>> getResultsOfEvent(Integer eventId) throws OlympicsDBException, SQLException {
         // FIXME: Replace the following with REAL OPERATIONS!
@@ -266,7 +266,7 @@ public class DatabaseBackend {
 		    						   + "Participates JOIN\n"
 		    						   + "Member ON (athlete_id = member_id) NATURAL JOIN\n"
 		    						   + "Country\n"
-		    						   + "WHERE event_id = '%s';", eventId);
+		    						   + "WHERE event_id = %d;", eventId);
 		    System.out.println(query);
 		    ResultSet rset = statement.executeQuery(query);
 			while(rset.next()){
@@ -295,7 +295,7 @@ public class DatabaseBackend {
     	finally{
     		reallyClose(conn);
     	}
-    	
+
         return results;
     }
 
@@ -308,12 +308,12 @@ public class DatabaseBackend {
      * @param fromPlace the origin, starting place.
      * @param toPlace the destination, place to go to.
      * @return a list of all journeys from the origin to destination
-     * @throws SQLException 
+     * @throws SQLException
      */
     ArrayList<HashMap<String, Object>> findJourneys(String fromPlace, String toPlace, Date journeyDate) throws OlympicsDBException, SQLException {
         // FIXME: Replace the following with REAL OPERATIONS!
         ArrayList<HashMap<String, Object>> journeys = new ArrayList<>();
-        
+
         Connection conn = getConnection();
         Statement statement = conn.createStatement();
         String query = String.format("SELECT *\n"
@@ -333,7 +333,7 @@ public class DatabaseBackend {
             journey.put("when_arrives", new Date());
             journey.put("available_seats", rset.getInt("capacity"));
             journeys.add(journey);
-            	
+
         }
         conn.close();
         return journeys;
@@ -358,10 +358,10 @@ public class DatabaseBackend {
                 booking.put("origin_name", rset.getInt("from_place"));
                 booking.put("dest_name", rset.getInt("to_place"));
                 booking.put("when_departs", rset.getDate("depart_time"));
-                booking.put("when_arrives", new Date());		
+                booking.put("when_arrives", new Date());
         		bookings.add(booking);
         	}
-        	
+
         }
         catch(SQLException ex){
         	chuck = true;
@@ -374,32 +374,32 @@ public class DatabaseBackend {
         	throw e;
         return bookings;
     }
-                
+
     /**
      * Get details for a specific journey
-     * 
+     *
      * @return Various details of journey - see JourneyDetails.java
      * @throws OlympicsDBException
      */
     public HashMap<String,Object> getJourneyDetails(int journey_id) throws OlympicsDBException {
         //TODO
-    	
+
     	// FIXME: REPLACE FOLLOWING LINES WITH REAL OPERATION
-        
+
     	HashMap<String,Object> details = new HashMap<String,Object>();
-    	
-        
+
+
         Connection conn;
         try {
     	conn = getConnection();
         Statement statement = conn.createStatement();
-        
+
         String query = String.format("SELECT *\n"
    			 + "FROM Journey NATURAL JOIN Vehicle\n"
    			 + "WHERE journey_id = '%s'", journey_id);
         System.out.println(query);
         ResultSet rset = statement.executeQuery(query);
-        
+
         while(rset.next()) {
     	details.put("journey_id", rset.getInt("journey_id"));
     	details.put("vehicle_code", rset.getString("vehicle_code"));
@@ -410,34 +410,34 @@ public class DatabaseBackend {
         details.put("capacity", rset.getInt("capacity"));
         details.put("nbooked", rset.getInt("nbooked"));
         }
-        
-        
+
+
         } catch(SQLException e){
-    		
+
     	}
-    	
-    	
+
+
         return details;
     }
-    
+
     public HashMap<String,Object> makeBooking(String byStaff, String forMember, Date departs) throws OlympicsDBException {
     	HashMap<String,Object> booking = new HashMap<String,Object>();
     	//TODO
         // FIXME: DUMMY FUNCTION NEEDS TO BE PROPERLY IMPLEMENTED
-    	
-    	
+
+
     	Connection conn;
         try {
     	conn = getConnection();
         Statement statement = conn.createStatement();
-        
+
         String query = "";
         ResultSet rset = statement.executeQuery(query);
-        
+
         while(rset.next()) {
     	/*HashMap<String,Object> booking = null;
-    	
-        
+
+
     	booking = new HashMap<String,Object>();
         booking.put("vehicle", "TR870R");
     	booking.put("start_day", "21/12/2020");
@@ -448,12 +448,12 @@ public class DatabaseBackend {
     	booking.put("whenbooked", new Date());
     	return booking;*/
         }
-        
-        
+
+
         } catch(SQLException e){
-    		
+
     	}
-    	
+
     	return booking;
     }
     //NICK IS GAY
@@ -472,11 +472,11 @@ public class DatabaseBackend {
     	booking.put("bookedfor_name", "Mike");
     	booking.put("when_booked", new Date());
     	booking.put("when_arrives", new Date());
-    	
+
 
         return booking;
     }
-    
+
 	public ArrayList<HashMap<String, Object>> getSports() throws Exception {
 		ArrayList<HashMap<String,Object>> sports = new ArrayList<HashMap<String,Object>>();
 		boolean chuck = false;
@@ -528,7 +528,7 @@ public class DatabaseBackend {
     	Properties props = new Properties();
     	try{
 			props.load(config);
-		} 
+		}
     	catch(IOException e){
 			throw new OlympicsDBException("Couldn't read config data",e);
 		}
@@ -538,37 +538,37 @@ public class DatabaseBackend {
     	String port = props.getProperty("port");
     	String dbname = props.getProperty("dbname");
     	String server = props.getProperty("address");;
-    	
+
         // Load JDBC driver and setup connection details
     	String vendor = props.getProperty("dbvendor");
 		if(vendor==null)
     		throw new OlympicsDBException("No vendor config data");
-		else if("postgresql".equals(vendor)){ 
+		else if("postgresql".equals(vendor)){
     		Class.forName("org.postgresql.Driver");
     		connstring = "jdbc:postgresql://" + server + ":" + port + "/" + dbname;
-    	} 
+    	}
     	else if("oracle".equals(vendor)){
     		Class.forName("oracle.jdbc.driver.OracleDriver");
     		connstring = "jdbc:oracle:thin:@" + server + ":" + port + ":" + dbname;
-    	} 
-    	else 
+    	}
+    	else
     		throw new OlympicsDBException("Unknown database vendor: " + vendor);
-		
+
 		// test the connection
 		Connection conn = null;
 		try{
 			conn = getConnection();
-		} 
+		}
 		catch(SQLException e){
 			throw new OlympicsDBException("Couldn't open connection", e);
-		} 
+		}
 		finally{
 			reallyClose(conn);
 		}
     }
 
 	/**
-	 * Utility method to ensure a connection is closed without 
+	 * Utility method to ensure a connection is closed without
 	 * generating any exceptions
 	 * @param conn Database connection
 	 */
@@ -576,7 +576,7 @@ public class DatabaseBackend {
 		if(conn!=null)
 			try{
 				conn.close();
-			} 
+			}
 			catch(SQLException ignored){}
 	}
 
@@ -590,5 +590,5 @@ public class DatabaseBackend {
     }
 
 
-    
+
 }
