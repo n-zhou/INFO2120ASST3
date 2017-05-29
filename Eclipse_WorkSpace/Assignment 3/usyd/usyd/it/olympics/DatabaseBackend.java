@@ -420,7 +420,7 @@ public class DatabaseBackend {
         return details;
     }
 
-    public HashMap<String,Object> makeBooking(String byStaff, String forMember, Date departs) throws OlympicsDBException {
+    public HashMap<String,Object> makeBooking(String byStaff, String forMember, String vehicle, Date departs) throws OlympicsDBException {
     	HashMap<String,Object> booking = new HashMap<String,Object>();
     	//TODO
         // FIXME: DUMMY FUNCTION NEEDS TO BE PROPERLY IMPLEMENTED
