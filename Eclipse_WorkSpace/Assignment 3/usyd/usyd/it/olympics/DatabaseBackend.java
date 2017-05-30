@@ -445,7 +445,7 @@ public class DatabaseBackend {
         PreparedStatement statement = conn.prepareStatement(query);
         ResultSet rset = statement.executeQuery();
         int count = rset.getInt(1);
-        
+        //TODO MAKE THIS A TRANSACTION
       //TODO handle this better
         if (count != 1) {
         	return null;
@@ -478,7 +478,7 @@ public class DatabaseBackend {
 
     	return booking;
     }
-    //NICK IS GAY
+    
     public HashMap<String,Object> getBookingDetails(String memberID, Integer journeyId) throws OlympicsDBException {
     	HashMap<String,Object> booking = new HashMap<String, Object>();
     	
@@ -491,7 +491,8 @@ public class DatabaseBackend {
 			+ "JOIN Member S on (booked_by = S.member_id)) "
 			+ "NATURAL JOIN ((Journey JOIN Place P1 ON (P1.place_id = to_place)) "
 			+ "JOIN Place P2 ON (P2.place_id = from_place)) "
-			+ "WHERE journey_id = %d AND booked_for = '%s';", journeyId, memberID);
+			+ "WHERE journey_id = %d AND booked_for = '%s' "
+			+ "ORDER BY depart_time DESC;", journeyId, memberID);
 			PreparedStatement statement = conn.prepareStatement(query);
 			//TODO
 			
