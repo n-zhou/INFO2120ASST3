@@ -217,14 +217,18 @@ public class DatabaseBackend {
         SQLException e = null;
         boolean chuck = false;
         try{
-	        Statement statement = conn.createStatement();
+	        
 	        String query = String.format("SELECT *\n"
 	        							+ "FROM Sport NATURAL JOIN\n"
-	        							+ "		Event LEFT JOIN\n"
-	        							+ "		Place ON (sport_venue = place_id)\n"
-	        							+ "WHERE sport_id = %d;", sportname);
-	        System.out.println(query);
-	        ResultSet rset = statement.executeQuery(query);
+	        							+ "Event LEFT JOIN\n"
+	        							+ "Place ON (sport_venue = place_id)\n"
+	        							+ "WHERE sport_id = ?;");
+	        
+	        
+	        PreparedStatement statement = conn.prepareStatement(query);
+	        statement.setInt(1, sportname);
+	        //System.out.println(query);
+	        ResultSet rset = statement.executeQuery();
 	        while(rset.next()){
 	        	HashMap<String,Object> event = new HashMap<String,Object>();
 	            event.put("event_id", rset.getInt("event_id"));
@@ -351,16 +355,16 @@ public class DatabaseBackend {
         try{
         	conn = getConnection();
         	Statement statement = conn.createStatement();
-        	String query = String.format("SELECT journey_id, vehicle_code, from_place, to_place, depart_time\n"
-					   + "FROM Journey NATURAL JOIN Booking\n"
+        	String query = String.format("SELECT journey_id, vehicle_code, P1.place_name, P2.place_name, depart_time, arrive_time\n"
+					   + "FROM Booking NATURAL JOIN ((Journey JOIN Place P2 ON (to_place = P2.place_id)) JOIN Place P1 ON (from_place = P1.place_id))\n"
 					   + "where booked_for = '%s';", memberID);
         	ResultSet rset = statement.executeQuery(query);
         	while(rset.next()){
         		HashMap<String, Object> booking = new HashMap<>();
         		booking.put("journey_id", rset.getInt("journey_id"));
                 booking.put("vehicle_code", rset.getString("vehicle_code"));
-                booking.put("origin_name", rset.getInt("from_place"));
-                booking.put("dest_name", rset.getInt("to_place"));
+                booking.put("origin_name", rset.getInt("P1.place_name"));
+                booking.put("dest_name", rset.getInt("P2.place_name"));
                 booking.put("when_departs", rset.getDate("depart_time"));
                 booking.put("when_arrives", rset.getDate("arrive_time"));
         		bookings.add(booking);
@@ -398,17 +402,19 @@ public class DatabaseBackend {
     	conn = getConnection();
         Statement statement = conn.createStatement();
 
-        String query = String.format("SELECT *\n"
-   			 + "FROM Journey NATURAL JOIN Vehicle\n"
-   			 + "WHERE journey_id = '%s'", journey_id);
+        String query = String.format("SELECT journey_id, vehicle_code, P1.place_name, P2.place_name, "
+        		+ "depart_time, arrive_time, capacity, nbooked\n"
+   			 + "FROM Vehicle NATURAL JOIN ((Journey JOIN Place P2 ON (to_place = P2.place_id)) "
+   			 + "JOIN Place P1 ON (from_place = P1.place_id))\n"
+   			 + "WHERE journey_id = %d", journey_id);
         System.out.println(query);
         ResultSet rset = statement.executeQuery(query);
 
         while(rset.next()) {
     	details.put("journey_id", rset.getInt("journey_id"));
     	details.put("vehicle_code", rset.getString("vehicle_code"));
-        details.put("origin_name", rset.getInt("from_place"));
-        details.put("dest_name", rset.getInt("to_place"));
+        details.put("origin_name", rset.getInt("P1.place_name"));
+        details.put("dest_name", rset.getInt("P2.place_name"));
         details.put("when_departs", rset.getDate("depart_time"));
         details.put("when_arrives", rset.getDate("arrive_time"));
         details.put("capacity", rset.getInt("capacity"));
@@ -433,10 +439,22 @@ public class DatabaseBackend {
     	Connection conn;
         try {
     	conn = getConnection();
-        Statement statement = conn.createStatement();
+       
 
-        String query = "";
-        ResultSet rset = statement.executeQuery(query);
+        String query = String.format("SELECT COUNT(*) FROM Journey WHERE depart_time = %s AND vehicle_code = '%s'", departs, vehicle);
+        PreparedStatement statement = conn.prepareStatement(query);
+        ResultSet rset = statement.executeQuery();
+        int count = rset.getInt(1);
+        
+      //TODO handle this better
+        if (count != 1) {
+        	return null;
+        	
+        }
+        
+        //TODO finish and clean up
+        
+        
 
         while(rset.next()) {
     	/*HashMap<String,Object> booking = null;
