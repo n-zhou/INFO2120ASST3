@@ -19,6 +19,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -315,23 +316,26 @@ public class DatabaseBackend {
         ArrayList<HashMap<String, Object>> journeys = new ArrayList<>();
 
         Connection conn = getConnection();
-        Statement statement = conn.createStatement();
-        String query = String.format("SELECT *\n"
-        			 + "FROM Journey\n"
-        			 + "WHERE LOWER(from_place) LIKE LOWER('%%s%')\n"
-        			 + "AND LOWER(to_place) LIKE LOWER('%%s%')\n"
+        
+        String query = String.format("SELECT journey_id, vehicle_code, P1.place_name, P2.place_name, "
+        		+ "depart_time, arrive_time, vehicle, capacity, nbooked\n"
+        			 + "FROM Place P2 JOIN (Journey NATURAL JOIN Vehicle) ON (to_place = P2.place_id)"
+        			 + "JOIN Place P1 ON (from_place = P1.place_id)\n"
+        			 + "WHERE P1.place_name = '%s'\n"
+        			 + "AND P2.place_name = '%s'\n"
         			 + "AND depart_time = %s", fromPlace, toPlace, journeyDate);
+        PreparedStatement statement = conn.prepareStatement(query);
         System.out.println(query);
-        ResultSet rset = statement.executeQuery(query);
+        ResultSet rset = statement.executeQuery();
         while(rset.next()){
         	HashMap<String,Object> journey = new HashMap<String,Object>();
             journey.put("journey_id", rset.getInt("journey_id"));
             journey.put("vehicle_code", rset.getString("vehicle_code"));
-            journey.put("origin_name", rset.getInt("from_place"));
-            journey.put("dest_name", rset.getInt("to_place"));
+            journey.put("origin_name", rset.getInt("P1.place_name"));
+            journey.put("dest_name", rset.getInt("P2.place_name"));
             journey.put("when_departs", rset.getDate("depart_time"));
             journey.put("when_arrives", rset.getDate("arrive_time"));
-            journey.put("available_seats", rset.getInt("capacity"));
+            journey.put("available_seats", Integer.valueOf(rset.getInt("capacity")-rset.getInt("nbooked")));
             journeys.add(journey);
 
         }
@@ -458,22 +462,43 @@ public class DatabaseBackend {
     }
     //NICK IS GAY
     public HashMap<String,Object> getBookingDetails(String memberID, Integer journeyId) throws OlympicsDBException {
-    	HashMap<String,Object> booking = null;
+    	HashMap<String,Object> booking = new HashMap<String, Object>();
+    	
+		Connection conn = null;
+		try{
+			conn = getConnection();
+			String query = String.format("SELECT journey_id, vehicle_code, depart_time, arrive_time, when_booked, "
+			+ "P2.place_name, P1.place_name, M.family_name, M.given_names, S.family_name, S.given_names "
+			+ "FROM ((Booking JOIN Member M on (booked_for = M.member_id)) "
+			+ "JOIN Member S on (booked_by = S.member_id)) "
+			+ "NATURAL JOIN ((Journey JOIN Place P1 ON (P1.place_id = to_place)) "
+			+ "JOIN Place P2 ON (P2.place_id = from_place)) "
+			+ "WHERE journey_id = %d AND booked_for = '%s';", journeyId, memberID);
+			PreparedStatement statement = conn.prepareStatement(query);
+			//TODO
+			
+			ResultSet rset = statement.executeQuery();
+			while(rset.next()){
+				booking.put("journey_id", rset.getInt("journey_id"));
+        		booking.put("vehicle_code", rset.getString("vehicle_code"));
+    			booking.put("when_departs", rset.getDate("depart_time"));
+    			booking.put("dest_name", rset.getString("P2.place_name"));
+    			booking.put("origin_name", rset.getString("P1.place_name"));
+    			booking.put("bookedby_name", String.format("%s %s", rset.getString("S.given_names").split(" ")[0], rset.getString("S.family_name")));
+    			booking.put("bookedfor_name", String.format("%s %s", rset.getString("M.given_names").split(" ")[0], rset.getString("M.family_name")));
+    			booking.put("when_booked", rset.getDate("when_booked"));
+    			booking.put("when_arrives", rset.getDate("arrive_time"));
 
-        // FIXME: DUMMY FUNCTION NEEDS TO BE PROPERLY IMPLEMENTED
-    	booking = new HashMap<String,Object>();
-
-    	booking.put("journey_id", journeyId);
-        booking.put("vehicle_code", "TR870R");
-    	booking.put("when_departs", new Date());
-    	booking.put("dest_name", "SIT");
-    	booking.put("origin_name", "Wentworth");
-    	booking.put("bookedby_name", "Mrs Piggy");
-    	booking.put("bookedfor_name", "Mike");
-    	booking.put("when_booked", new Date());
-    	booking.put("when_arrives", new Date());
-
-
+			}
+		}
+		catch(SQLException ex){
+			
+		}
+		finally{
+			reallyClose(conn);
+		}
+		
+		
         return booking;
     }
 
@@ -484,10 +509,11 @@ public class DatabaseBackend {
 		Connection conn = null;
 		try{
 			conn = getConnection();
-			Statement statement = conn.createStatement();
-			//TODO
 			String query = String.format("SELECT * FROM Sport;");
-			ResultSet rset = statement.executeQuery(query);
+			PreparedStatement statement = conn.prepareStatement(query);
+			//TODO
+			
+			ResultSet rset = statement.executeQuery();
 			while(rset.next()){
 				HashMap<String, Object> sport = new HashMap<>();
 				sport.put("sport_id", Integer.valueOf(rset.getInt("sport_id")));
