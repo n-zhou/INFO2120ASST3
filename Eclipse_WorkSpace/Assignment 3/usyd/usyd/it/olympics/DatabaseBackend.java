@@ -364,7 +364,7 @@ public class DatabaseBackend {
 										 + "JOIN Place P1 ON (from_place = P1.place_id)\n"
 										 + "WHERE P1.place_name = '%s'\n"
 										 + "AND P2.place_name = '%s'\n"
-										 + "AND CAST(depart_time AS date) = '%s';",
+										 + "AND depart_time = %s;",
 										 fromPlace, toPlace, new Timestamp(journeyDate.getTime()));
 			PreparedStatement statement = conn.prepareStatement(query);
 			System.out.println(query);
