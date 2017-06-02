@@ -379,7 +379,7 @@ public class DatabaseBackend {
 
         	String query = "SELECT journey_id, vehicle_code, P1.place_name as fromp, P2.place_name as top, depart_time, arrive_time\n"
 					   + "FROM Booking NATURAL JOIN ((Journey JOIN Place P2 ON (to_place = P2.place_id)) JOIN Place P1 ON (from_place = P1.place_id))\n"
-					   + "where booked_for = '%s';";
+					   + "where booked_for = ?;";
         	PreparedStatement statement = conn.prepareStatement(query);
           statement.setString(1, memberID);
         	ResultSet rset = statement.executeQuery();
@@ -387,8 +387,8 @@ public class DatabaseBackend {
         		HashMap<String, Object> booking = new HashMap<>();
         		booking.put("journey_id", rset.getInt("journey_id"));
                 booking.put("vehicle_code", rset.getString("vehicle_code"));
-                booking.put("origin_name", rset.getInt("fromp"));
-                booking.put("dest_name", rset.getInt("top"));
+                booking.put("origin_name", rset.getString("fromp"));
+                booking.put("dest_name", rset.getString("top"));
                 booking.put("when_departs", rset.getDate("depart_time"));
                 booking.put("when_arrives", rset.getDate("arrive_time"));
         		bookings.add(booking);
