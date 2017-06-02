@@ -1,6 +1,7 @@
 package usyd.it.olympics;
 
 import java.io.FileInputStream;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -191,6 +192,9 @@ public class OlympicsDBClient {
             setMessage("Details fetched.");
         } catch (OlympicsDBException e) {
             setMessage(e.getMessage());
+        }
+        catch(Exception e){
+        	setMessage(e.getMessage());
         }
     }
 

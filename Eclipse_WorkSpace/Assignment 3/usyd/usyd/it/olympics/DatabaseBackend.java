@@ -63,7 +63,7 @@ public class DatabaseBackend {
    * @throws OlympicsDBException
    * @throws SQLException
    */
-	public HashMap<String,Object> checkLogin(String member, char[] password) throws OlympicsDBException, SQLException  {
+	public HashMap<String,Object> checkLogin(String member, char[] password) throws OlympicsDBException  {
 		HashMap<String,Object> details = null;
 		Connection conn = null;
 		try {
@@ -97,7 +97,8 @@ public class DatabaseBackend {
 					details.put("member_type", "staff");
 				statement.close();
 			}
-		} catch (Exception e) {
+		}
+    catch(Exception e){
 			throw new OlympicsDBException("Error checking login details", e);
 		}
 		finally{
@@ -116,7 +117,7 @@ public class DatabaseBackend {
    * @throws OlympicsDBException
    * @throws SQLException
    */
-	public HashMap<String, Object> getMemberDetails(String memberID) throws OlympicsDBException, SQLException {
+	public HashMap<String, Object> getMemberDetails(String memberID) throws OlympicsDBException {
 		HashMap<String, Object> details = new HashMap<String, Object>();
 		Connection conn = null;
 		try{
@@ -229,14 +230,13 @@ public class DatabaseBackend {
    * @throws OlympicsDBException
    * @throws SQLException
    */
-	ArrayList<HashMap<String, Object>> getEventsOfSport(Integer sportname) throws OlympicsDBException, SQLException {
+	ArrayList<HashMap<String, Object>> getEventsOfSport(Integer sportname) throws OlympicsDBException {
 		// FIXME: Replace the following with REAL OPERATIONS!
 
 		ArrayList<HashMap<String, Object>> events = new ArrayList<>();
-		Connection conn = getConnection();
-		SQLException e = null;
-		boolean chuck = false;
+		Connection conn = null;
 		try{
+			conn = getConnection();
 
 			String query = "SELECT event_id, sport_id, event_name, event_gender, place_name, event_start\n"
 				+ "FROM Sport NATURAL JOIN\n"
@@ -260,15 +260,13 @@ public class DatabaseBackend {
 				events.add(event);
 			}
 		}
-		catch(SQLException ex){
-			chuck = true;
-			e = ex;
+		catch(SQLException e){
+      System.err.println(e);
+			throw new OlympicsDBException("Error checking member details", e);
 		}
 		finally{
 			reallyClose(conn);
 		}
-		if(chuck)
-			throw e;
 		return events;
 	}
 
@@ -279,13 +277,13 @@ public class DatabaseBackend {
    * @throws OlympicsDBException
    * @throws SQLException
    */
-	ArrayList<HashMap<String, Object>> getResultsOfEvent(Integer eventId) throws OlympicsDBException, SQLException {
+	ArrayList<HashMap<String, Object>> getResultsOfEvent(Integer eventId) throws OlympicsDBException {
 		// FIXME: Replace the following with REAL OPERATIONS!
 
 		ArrayList<HashMap<String, Object>> results = new ArrayList<>();
-		Connection conn = getConnection();
+		Connection conn = null;
 		try{
-
+			conn = getConnection();
 			String query = "SELECT family_name, given_names, country_name, medal\n"
 				+ "FROM Event NATURAL JOIN\n"
 				+ "Participates JOIN\n"
@@ -317,7 +315,8 @@ public class DatabaseBackend {
 			}
 		}
 		catch(SQLException e){
-			throw e;
+      System.err.println(e);
+			throw new OlympicsDBException("Error checking member details", e);
 		}
 		finally{
 			reallyClose(conn);
@@ -337,43 +336,48 @@ public class DatabaseBackend {
    * @return a list of all journeys from the origin to destination
    * @throws SQLException
    */
-	ArrayList<HashMap<String, Object>> findJourneys(String fromPlace, String toPlace, Date journeyDate) throws OlympicsDBException, SQLException {
+	ArrayList<HashMap<String, Object>> findJourneys(String fromPlace, String toPlace, Date journeyDate) throws OlympicsDBException {
 		// FIXME: Replace the following with REAL OPERATIONS!
 		ArrayList<HashMap<String, Object>> journeys = new ArrayList<>();
 
-		Connection conn = getConnection();
+		Connection conn = null;
+		try{
+			conn = getConnection();
+			String query = String.format("SELECT journey_id, vehicle_code, P1.place_name as fromp, P2.place_name as top, "
+										 + "depart_time, arrive_time, vehicle, capacity, nbooked\n"
+										 + "FROM Place P2 JOIN (Journey NATURAL JOIN Vehicle) ON (to_place = P2.place_id)"
+										 + "JOIN Place P1 ON (from_place = P1.place_id)\n"
+										 + "WHERE P1.place_name = '%s'\n"
+										 + "AND P2.place_name = '%s';\n"
+										 + "AND CAST(depart_time AS date) = %s",
+										 fromPlace, toPlace, new Timestamp(journeyDate.getTime()));
+			PreparedStatement statement = conn.prepareStatement(query);
+			System.out.println(query);
+			ResultSet rset = statement.executeQuery();
+			while(rset.next()){
+				HashMap<String,Object> journey = new HashMap<String,Object>();
+				journey.put("journey_id", rset.getInt("journey_id"));
+				journey.put("vehicle_code", rset.getString("vehicle_code"));
+				journey.put("origin_name", rset.getInt("fromp"));
+				journey.put("dest_name", rset.getInt("top"));
+				journey.put("when_departs", rset.getDate("depart_time"));
+				journey.put("when_arrives", rset.getDate("arrive_time"));
+				journey.put("available_seats", Integer.valueOf(rset.getInt("capacity")-rset.getInt("nbooked")));
+				journeys.add(journey);
 
-		String query = String.format("SELECT journey_id, vehicle_code, P1.place_name as fromp, P2.place_name as top, "
-									 + "depart_time, arrive_time, vehicle, capacity, nbooked\n"
-									 + "FROM Place P2 JOIN (Journey NATURAL JOIN Vehicle) ON (to_place = P2.place_id)"
-									 + "JOIN Place P1 ON (from_place = P1.place_id)\n"
-									 + "WHERE P1.place_name = '%s'\n"
-									 + "AND P2.place_name = '%s';\n"
-									 + "AND CAST(depart_time AS date) = %s",
-									 fromPlace, toPlace, new Timestamp(journeyDate.getTime()));
-		PreparedStatement statement = conn.prepareStatement(query);
-		System.out.println(query);
-		ResultSet rset = statement.executeQuery();
-		while(rset.next()){
-			HashMap<String,Object> journey = new HashMap<String,Object>();
-			journey.put("journey_id", rset.getInt("journey_id"));
-			journey.put("vehicle_code", rset.getString("vehicle_code"));
-			journey.put("origin_name", rset.getInt("fromp"));
-			journey.put("dest_name", rset.getInt("top"));
-			journey.put("when_departs", rset.getDate("depart_time"));
-			journey.put("when_arrives", rset.getDate("arrive_time"));
-			journey.put("available_seats", Integer.valueOf(rset.getInt("capacity")-rset.getInt("nbooked")));
-			journeys.add(journey);
-
+			}
 		}
-		conn.close();
+		catch(SQLException e){
+			throw new OlympicsDBException("Error finding journey", e);
+		}
+		finally{
+			reallyClose(conn);
+		}
 		return journeys;
 	}
 	//TODO
 	ArrayList<HashMap<String,Object>> getMemberBookings(String memberID) throws Exception {
 		ArrayList<HashMap<String,Object>> bookings = new ArrayList<HashMap<String,Object>>();
-		Exception e = null;
-		Boolean chuck = false;
 		Connection conn = null;
 		try{
 			conn = getConnection();
@@ -396,8 +400,9 @@ public class DatabaseBackend {
 			}
 
 		}
-		catch(SQLException ex){
-			throw ex;
+		catch(SQLException e){
+      System.err.println(e);
+			throw new OlympicsDBException("Error checking member details", e);
 		}
 		finally{
 			reallyClose(conn);
@@ -420,7 +425,7 @@ public class DatabaseBackend {
 
 
 		Connection conn = null;
-		try {
+		try{
 			conn = getConnection();
 
 
@@ -443,11 +448,11 @@ public class DatabaseBackend {
 				details.put("capacity", rset.getInt("capacity"));
 				details.put("nbooked", rset.getInt("nbooked"));
 			}
+		}
+    catch(SQLException e){
 
-
-		} catch(SQLException e){
-
-		} finally{
+		}
+    finally{
 			reallyClose(conn);
 		}
 
@@ -460,7 +465,7 @@ public class DatabaseBackend {
 		//TODO
 		// FIXME: DUMMY FUNCTION NEEDS TO BE PROPERLY IMPLEMENTED
 		Connection conn = null;
-		try {
+		try{
 			conn = getConnection();
 			conn.setAutoCommit(false);
 
@@ -501,9 +506,12 @@ public class DatabaseBackend {
 
 
 
-		} catch(SQLException e){
-      throw e;
-		} finally{
+		}
+    catch(SQLException e){
+      System.err.println(e);
+			throw new OlympicsDBException("Error checking member details", e);
+		}
+    finally{
 			reallyClose(conn);
 		}
 
@@ -512,7 +520,6 @@ public class DatabaseBackend {
 
 	public HashMap<String,Object> getBookingDetails(String memberID, Integer journeyId) throws OlympicsDBException {
 		HashMap<String,Object> booking = new HashMap<String, Object>();
-
 		Connection conn = null;
 		try{
 			conn = getConnection();
@@ -541,8 +548,9 @@ public class DatabaseBackend {
 
 			}
 		}
-		catch(SQLException ex){
-      throw ex;
+		catch(SQLException e){
+      System.err.println(e);
+			throw new OlympicsDBException("Error checking booking details", e);
 		}
 		finally{
 			reallyClose(conn);
@@ -550,10 +558,8 @@ public class DatabaseBackend {
 		return booking;
 	}
 
-	public ArrayList<HashMap<String, Object>> getSports() throws Exception {
+	public ArrayList<HashMap<String, Object>> getSports() throws OlympicsDBException {
 		ArrayList<HashMap<String,Object>> sports = new ArrayList<HashMap<String,Object>>();
-		boolean chuck = false;
-		Exception e = null;
 		Connection conn = null;
 		try{
 			conn = getConnection();
@@ -569,8 +575,9 @@ public class DatabaseBackend {
 				sports.add(sport);
 			}
 		}
-		catch(SQLException ex){
-			throw ex;
+		catch(SQLException e){
+      System.err.println(e);
+			throw new OlympicsDBException("Error fetching sports from database", e);
 		}
 		finally{
 			reallyClose(conn);
