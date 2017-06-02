@@ -65,12 +65,13 @@ public class DatabaseBackend {
      */
     public HashMap<String,Object> checkLogin(String member, char[] password) throws OlympicsDBException, SQLException  {
         HashMap<String,Object> details = null;
-        Connection conn = getConnection();
+        Connection conn = null;
         try {
 	        // FIXME: REPLACE FOLLOWING LINES WITH REAL OPERATION
 	        // Don't forget you have memberID variables memberUser available to
 	        // use in a query.
 	        // Query whether login (memberID, password) is correct...
+        	conn = getConnection();
             Statement statement = conn.createStatement();
             String query = String.format("SELECT * FROM Member WHERE LOWER(member_id) = LOWER('%s') AND pass_word = '%s';", member, new String(password));
             ResultSet rset = statement.executeQuery(query);
@@ -121,17 +122,17 @@ public class DatabaseBackend {
     	try{
 	    	conn = getConnection();
 	    	details = new HashMap<String,Object>();
-	    	String query = "SELECT COUNT(*) FROM Athlete WHERE LOWER(member_id) = LOWER('?')";
+	    	String query = "SELECT COUNT(*) FROM Athlete WHERE LOWER(member_id) = LOWER(?)";
 	    	PreparedStatement statement = conn.prepareStatement(query);
         statement.setString(1, memberID);
 	    	ResultSet athlete = statement.executeQuery();
 	    	athlete.next();
-	    	query = "SELECT COUNT(*) FROM official WHERE LOWER(member_id) = LOWER('?')";
+	    	query = "SELECT COUNT(*) FROM official WHERE LOWER(member_id) = LOWER(?)";
 	    	statement = conn.prepareStatement(query);
         statement.setString(1, memberID);
 	    	ResultSet official= statement.executeQuery();
 	    	official.next();
-	    	query = "SELECT COUNT(*) FROM staff WHERE LOWER(member_id) = LOWER('?')";
+	    	query = "SELECT COUNT(*) FROM staff WHERE LOWER(member_id) = LOWER(?)";
 	    	statement = conn.prepareStatement(query);
         statement.setString(1, memberID);
 	    	ResultSet staff= statement.executeQuery();
@@ -146,7 +147,7 @@ public class DatabaseBackend {
 					 + "FROM Member NATURAL JOIN\n"
 					 + "Country JOIN\n"
 					 + "Place ON (accommodation = place_id)\n"
-					 + "WHERE member_id = '?';";
+					 + "WHERE member_id = ?;";
 	    	statement = conn.prepareStatement(query);
         statement.setString(1, memberID);
 	    	ResultSet rset = statement.executeQuery();
@@ -162,7 +163,7 @@ public class DatabaseBackend {
 
 	    	query = "SELECT COUNT(*)\n"
 	    						+ "FROM booking\n"
-	    						+ "WHERE booked_for  = '?';";
+	    						+ "WHERE booked_for  = ?;";
         statement = conn.prepareStatement(query);
         statement.setString(1, memberID);
 	    	rset = statement.executeQuery();
@@ -176,7 +177,7 @@ public class DatabaseBackend {
 
 	    		query = "SELECT COUNT(*)\n"
 	    							+ "FROM Participates\n"
-	    							+ "WHERE athlete_id = '?'\n"
+	    							+ "WHERE athlete_id = ?\n"
 	    							+ "AND medal = 'G';";
 	    		statement = conn.prepareStatement(query);
           statement.setString(1, memberID);
@@ -186,7 +187,7 @@ public class DatabaseBackend {
 
           query = "SELECT COUNT(*)\n"
 	    							+ "FROM Participates\n"
-	    							+ "WHERE athlete_id = '?'\n"
+	    							+ "WHERE athlete_id = ?\n"
 	    							+ "AND medal = 'S';";
 	    		statement = conn.prepareStatement(query);
           statement.setString(1, memberID);
@@ -196,7 +197,7 @@ public class DatabaseBackend {
 
             query = "SELECT COUNT(*)\n"
   	    							+ "FROM Participates\n"
-  	    							+ "WHERE athlete_id = '?'\n"
+  	    							+ "WHERE athlete_id = ?\n"
   	    							+ "AND medal = 'B';";
 	    		statement = conn.prepareStatement(query);
           statement.setString(1, memberID);
@@ -206,6 +207,7 @@ public class DatabaseBackend {
 		    }
 	        statement.close();
     	} catch (Exception e) {
+    	System.err.println(e);
           throw new OlympicsDBException("Error checking member details", e);
       }
     	finally{
