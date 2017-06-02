@@ -358,14 +358,15 @@ public class DatabaseBackend {
 		Connection conn = null;
 		try{
 			conn = getConnection();
+			//FIXME THING REPLACE '=' WITH LIKE
 			String query = String.format("SELECT journey_id, vehicle_code, P1.place_name as fromp, P2.place_name as top, "
 										 + "depart_time, arrive_time, vehicle, capacity, nbooked\n"
 										 + "FROM Place P2 JOIN (Journey NATURAL JOIN Vehicle) ON (to_place = P2.place_id)"
 										 + "JOIN Place P1 ON (from_place = P1.place_id)\n"
-										 + "WHERE P1.place_name = '%s'\n"
-										 + "AND P2.place_name = '%s'\n"
-										 + "AND depart_time = %s;",
-										 fromPlace, toPlace, new Timestamp(journeyDate.getTime()));
+										 + "WHERE P1.place_name LIKE '%s'\n"
+										 + "AND P2.place_name LIKE '%s'\n"
+										 + "AND CAST(depart_time AS DATE) = '%s';",
+										 fromPlace, toPlace, new java.sql.Date(journeyDate.getTime()));
 			PreparedStatement statement = conn.prepareStatement(query);
 			System.out.println(query);
 			ResultSet rset = statement.executeQuery();
@@ -373,8 +374,8 @@ public class DatabaseBackend {
 				HashMap<String,Object> journey = new HashMap<String,Object>();
 				journey.put("journey_id", rset.getInt("journey_id"));
 				journey.put("vehicle_code", rset.getString("vehicle_code"));
-				journey.put("origin_name", rset.getInt("fromp"));
-				journey.put("dest_name", rset.getInt("top"));
+				journey.put("origin_name", rset.getString("fromp"));
+				journey.put("dest_name", rset.getString("top"));
 				journey.put("when_departs", rset.getTimestamp("depart_time"));
 				journey.put("when_arrives", rset.getTimestamp("arrive_time"));
 				journey.put("available_seats", Integer.valueOf(rset.getInt("capacity")-rset.getInt("nbooked")));
@@ -384,6 +385,7 @@ public class DatabaseBackend {
 			statement.close();
 		}
 		catch(SQLException e){
+			System.err.println(e);
 			throw new OlympicsDBException("Error finding journey", e);
 		}
 		finally{
