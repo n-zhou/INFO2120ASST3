@@ -498,7 +498,7 @@ public class DatabaseBackend {
 			if (count != 1) {
 				conn.rollback();
 			}
-			query = String.format("SELECT journey_id, vehicle_code, P1.place_name, P2.place_name, "
+			query = String.format("SELECT journey_id, vehicle_code, P1.place_name as fromp, P2.place_name as top, "
 								  + "depart_time, arrive_time, capacity, nbooked\n"
 								  + "FROM Vehicle NATURAL JOIN ((Journey JOIN Place P2 ON (to_place = P2.place_id)) "
 								  + "JOIN Place P1 ON (from_place = P1.place_id))\n"
@@ -508,8 +508,8 @@ public class DatabaseBackend {
 			int journey = rset.getInt("journey_id");
 			booking.put("vehicle", rset.getString("vehicle_code"));
 			booking.put("start_date", rset.getTimestamp("depart_time"));
-			booking.put("to", rset.getString("P2.place_name"));
-			booking.put("from", rset.getString("P1.place_name"));
+			booking.put("to", rset.getString("top"));
+			booking.put("from", rset.getString("fromp"));
 
 			//booking.put("whenbooked", new Date());
 			//query = String.format("SELECT member_id WHERE ")
@@ -545,7 +545,7 @@ public class DatabaseBackend {
 		try{
 			conn = getConnection();
 			String query = String.format("SELECT journey_id, vehicle_code, depart_time, arrive_time, when_booked,\n"
-										 + "P2.place_name, P1.place_name, M.family_name, M.given_names, S.family_name, S.given_names\n"
+										 + "P2.place_name as fromp, P1.place_name as top, M.family_name as m_last, M.given_names as m_first, S.family_name as s_last, S.given_names as s_first\n"
 										 + "FROM ((Booking JOIN Member M on (booked_for = M.member_id))\n"
 										 + "JOIN Member S on (booked_by = S.member_id))\n"
 										 + "NATURAL JOIN ((Journey JOIN Place P1 ON (P1.place_id = to_place))\n"
@@ -561,10 +561,10 @@ public class DatabaseBackend {
 				booking.put("journey_id", rset.getInt("journey_id"));
 				booking.put("vehicle_code", rset.getString("vehicle_code"));
 				booking.put("when_departs", rset.getTimestamp("depart_time"));
-				booking.put("dest_name", rset.getString("P2.place_name"));
-				booking.put("origin_name", rset.getString("P1.place_name"));
-				booking.put("bookedby_name", String.format("%s %s", rset.getString("S.given_names").split(" ")[0], rset.getString("S.family_name")));
-				booking.put("bookedfor_name", String.format("%s %s", rset.getString("M.given_names").split(" ")[0], rset.getString("M.family_name")));
+				booking.put("dest_name", rset.getString("top"));
+				booking.put("origin_name", rset.getString("fromp"));
+				booking.put("bookedby_name", String.format("%s %s", rset.getString("s_first").split(" ")[0], rset.getString("s_last")));
+				booking.put("bookedfor_name", String.format("%s %s", rset.getString("m_first").split(" ")[0], rset.getString("m_last")));
 				booking.put("when_booked", rset.getTimestamp("when_booked"));
 				booking.put("when_arrives", rset.getTimestamp("arrive_time"));
 
