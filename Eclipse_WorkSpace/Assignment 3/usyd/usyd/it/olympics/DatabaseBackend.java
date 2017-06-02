@@ -75,6 +75,7 @@ public class DatabaseBackend {
 			Statement statement = conn.createStatement();
 			String query = String.format("SELECT * FROM Member WHERE LOWER(member_id) = LOWER('%s') AND pass_word = '%s';", member, new String(password));
 			ResultSet rset = statement.executeQuery(query);
+			//FIXME PROTECT ME FROM SQL INJECTIONS
 			if(rset.next()){
 				details = new HashMap<String,Object>();
 				statement = conn.createStatement();
@@ -95,7 +96,7 @@ public class DatabaseBackend {
 					details.put("member_type", "official");
 				if(staff.getInt(1) == 1)
 					details.put("member_type", "staff");
-				statement.close();
+        statement.close();
 			}
 		}
     catch(Exception e){
