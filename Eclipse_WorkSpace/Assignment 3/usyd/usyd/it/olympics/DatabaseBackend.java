@@ -165,7 +165,7 @@ public class DatabaseBackend {
 			rset.next();
 			details.put("member_id", memberID);
 			details.put("title", rset.getString("title"));
-			details.put("first_name", rset.getString("given_names").split(" ")[0]);
+			details.put("first_name", rset.getString("given_names"));
 			details.put("family_name", rset.getString("family_name"));
 			details.put("country_name", rset.getString("country_name"));
 			details.put("residence", rset.getString("place_name"));
@@ -311,19 +311,20 @@ public class DatabaseBackend {
 				HashMap<String, Object> result = new HashMap<>();
 				result.put("participant", String.format("%s, %s",rset.getString("family_name"), rset.getString("given_names").split(" ")[0]));
 				result.put("country_name", rset.getString("country_name"));
-				switch(rset.getString("medal")){
-					case "G":
-						result.put("medal", "Gold");
-						break;
-					case "S":
-						result.put("medal", "Silver");
-						break;
-					case "B":
-						result.put("medal", "Bronze");
-						break;
-					default:
-						result.put("medal", "loser");
-				}
+				if(rset.getString("medal") == null)
+					result.put("medal", null);
+				else
+					switch(rset.getString("medal")){
+						case "G":
+							result.put("medal", "Gold");
+							break;
+						case "S":
+							result.put("medal", "Silver");
+							break;
+						case "B":
+							result.put("medal", "Bronze");
+							break;
+					}
 				results.add(result);
 			}
 			statement.close();
@@ -362,8 +363,8 @@ public class DatabaseBackend {
 										 + "FROM Place P2 JOIN (Journey NATURAL JOIN Vehicle) ON (to_place = P2.place_id)"
 										 + "JOIN Place P1 ON (from_place = P1.place_id)\n"
 										 + "WHERE P1.place_name = '%s'\n"
-										 + "AND P2.place_name = '%s';\n"
-										 + "AND CAST(depart_time AS date) = %s",
+										 + "AND P2.place_name = '%s'\n"
+										 + "AND CAST(depart_time AS date) = '%s';",
 										 fromPlace, toPlace, new Timestamp(journeyDate.getTime()));
 			PreparedStatement statement = conn.prepareStatement(query);
 			System.out.println(query);
@@ -543,14 +544,15 @@ public class DatabaseBackend {
 		Connection conn = null;
 		try{
 			conn = getConnection();
-			String query = String.format("SELECT journey_id, vehicle_code, depart_time, arrive_time, when_booked, "
-										 + "P2.place_name, P1.place_name, M.family_name, M.given_names, S.family_name, S.given_names "
-										 + "FROM ((Booking JOIN Member M on (booked_for = M.member_id)) "
-										 + "JOIN Member S on (booked_by = S.member_id)) "
-										 + "NATURAL JOIN ((Journey JOIN Place P1 ON (P1.place_id = to_place)) "
-										 + "JOIN Place P2 ON (P2.place_id = from_place)) "
-										 + "WHERE journey_id = %d AND booked_for = '%s' "
+			String query = String.format("SELECT journey_id, vehicle_code, depart_time, arrive_time, when_booked,\n"
+										 + "P2.place_name, P1.place_name, M.family_name, M.given_names, S.family_name, S.given_names\n"
+										 + "FROM ((Booking JOIN Member M on (booked_for = M.member_id))\n"
+										 + "JOIN Member S on (booked_by = S.member_id))\n"
+										 + "NATURAL JOIN ((Journey JOIN Place P1 ON (P1.place_id = to_place))\n"
+										 + "JOIN Place P2 ON (P2.place_id = from_place))\n"
+										 + "WHERE journey_id = %d AND booked_for = '%s'\n"
 										 + "ORDER BY depart_time DESC;", journeyId, memberID);
+			System.out.println(query);
 			PreparedStatement statement = conn.prepareStatement(query);
 			//TODO
 
