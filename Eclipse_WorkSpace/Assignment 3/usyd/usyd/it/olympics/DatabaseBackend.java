@@ -72,21 +72,30 @@ public class DatabaseBackend {
 			// use in a query.
 			// Query whether login (memberID, password) is correct...
 			conn = getConnection();
-			Statement statement = conn.createStatement();
-			String query = String.format("SELECT * FROM Member WHERE LOWER(member_id) = LOWER('%s') AND pass_word = '%s';", member, new String(password));
-			ResultSet rset = statement.executeQuery(query);
+
+			String query = "SELECT * FROM Member WHERE LOWER(member_id) = LOWER(?) AND pass_word = ?;";
+			PreparedStatement statement = conn.prepareStatement(query);
+			statement.setString(1, member);
+			statement.setString(2, new String(password));
+			ResultSet rset = statement.executeQuery();
 			//FIXME PROTECT ME FROM SQL INJECTIONS
 			if(rset.next()){
 				details = new HashMap<String,Object>();
-				statement = conn.createStatement();
-				query = String.format("SELECT COUNT(*) FROM Athlete WHERE LOWER(member_id) = LOWER('%s');", member);
-				ResultSet athlete = statement.executeQuery(query);
-				statement = conn.createStatement();
-				query = String.format("SELECT COUNT(*) FROM official WHERE LOWER(member_id) = LOWER('%s');", member);
-				ResultSet official = statement.executeQuery(query);
-				statement = conn.createStatement();
-				query = String.format("SELECT COUNT(*) FROM staff WHERE LOWER(member_id) = LOWER('%s');", member);
-				ResultSet staff = statement.executeQuery(query);
+
+				query = "SELECT COUNT(*) FROM Athlete WHERE LOWER(member_id) = LOWER(?);";
+				statement = conn.prepareStatement(query);
+				statement.setString(1, member);
+				ResultSet athlete = statement.executeQuery();
+
+				query = "SELECT COUNT(*) FROM official WHERE LOWER(member_id) = LOWER(?);";
+				statement = conn.prepareStatement(query);
+				statement.setString(1, member);
+				ResultSet official = statement.executeQuery();
+
+				query = "SELECT COUNT(*) FROM staff WHERE LOWER(member_id) = LOWER(?);";
+				statement = conn.prepareStatement(query);
+				statement.setString(1, member);
+				ResultSet staff = statement.executeQuery();
 				athlete.next();
 				official.next();
 				staff.next();
@@ -257,15 +266,18 @@ public class DatabaseBackend {
 				event.put("event_name", rset.getString("event_name"));
 				event.put("event_gender", rset.getString("event_gender"));
 				event.put("sport_venue", rset.getString("place_name"));
-				event.put("event_start", rset.getDate("event_start"));
+				event.put("event_start", rset.getTimestamp("event_start"));
 				events.add(event);
 			}
+
+			statement.close();
 		}
 		catch(SQLException e){
       System.err.println(e);
 			throw new OlympicsDBException("Error checking member details", e);
 		}
 		finally{
+
 			reallyClose(conn);
 		}
 		return events;
@@ -314,6 +326,7 @@ public class DatabaseBackend {
 				}
 				results.add(result);
 			}
+			statement.close();
 		}
 		catch(SQLException e){
       System.err.println(e);
@@ -361,12 +374,13 @@ public class DatabaseBackend {
 				journey.put("vehicle_code", rset.getString("vehicle_code"));
 				journey.put("origin_name", rset.getInt("fromp"));
 				journey.put("dest_name", rset.getInt("top"));
-				journey.put("when_departs", rset.getDate("depart_time"));
-				journey.put("when_arrives", rset.getDate("arrive_time"));
+				journey.put("when_departs", rset.getTimestamp("depart_time"));
+				journey.put("when_arrives", rset.getTimestamp("arrive_time"));
 				journey.put("available_seats", Integer.valueOf(rset.getInt("capacity")-rset.getInt("nbooked")));
 				journeys.add(journey);
 
 			}
+			statement.close();
 		}
 		catch(SQLException e){
 			throw new OlympicsDBException("Error finding journey", e);
@@ -395,10 +409,12 @@ public class DatabaseBackend {
 				booking.put("vehicle_code", rset.getString("vehicle_code"));
 				booking.put("origin_name", rset.getString("fromp"));
 				booking.put("dest_name", rset.getString("top"));
-				booking.put("when_departs", rset.getDate("depart_time"));
-				booking.put("when_arrives", rset.getDate("arrive_time"));
+				booking.put("when_departs", rset.getTimestamp("depart_time"));
+				booking.put("when_arrives", rset.getTimestamp("arrive_time"));
 				bookings.add(booking);
 			}
+
+			statement.close();
 
 		}
 		catch(SQLException e){
@@ -444,11 +460,13 @@ public class DatabaseBackend {
 				details.put("vehicle_code", rset.getString("vehicle_code"));
 				details.put("origin_name", rset.getInt("fromp"));
 				details.put("dest_name", rset.getInt("top"));
-				details.put("when_departs", rset.getDate("depart_time"));
-				details.put("when_arrives", rset.getDate("arrive_time"));
+				details.put("when_departs", rset.getTimestamp("depart_time"));
+				details.put("when_arrives", rset.getTimestamp("arrive_time"));
 				details.put("capacity", rset.getInt("capacity"));
 				details.put("nbooked", rset.getInt("nbooked"));
 			}
+
+			statement.close();
 		}
     catch(SQLException e){
 
@@ -488,7 +506,7 @@ public class DatabaseBackend {
 			rset = statement.executeQuery();
 			int journey = rset.getInt("journey_id");
 			booking.put("vehicle", rset.getString("vehicle_code"));
-			booking.put("start_date", rset.getDate("depart_time"));
+			booking.put("start_date", rset.getTimestamp("depart_time"));
 			booking.put("to", rset.getString("P2.place_name"));
 			booking.put("from", rset.getString("P1.place_name"));
 
@@ -504,6 +522,7 @@ public class DatabaseBackend {
 			insertstmt.setString(1, forMember);
 			insertstmt.executeUpdate();
 			conn.commit();
+			statement.close();
 
 
 
@@ -539,15 +558,17 @@ public class DatabaseBackend {
 			while(rset.next()){
 				booking.put("journey_id", rset.getInt("journey_id"));
 				booking.put("vehicle_code", rset.getString("vehicle_code"));
-				booking.put("when_departs", rset.getDate("depart_time"));
+				booking.put("when_departs", rset.getTimestamp("depart_time"));
 				booking.put("dest_name", rset.getString("P2.place_name"));
 				booking.put("origin_name", rset.getString("P1.place_name"));
 				booking.put("bookedby_name", String.format("%s %s", rset.getString("S.given_names").split(" ")[0], rset.getString("S.family_name")));
 				booking.put("bookedfor_name", String.format("%s %s", rset.getString("M.given_names").split(" ")[0], rset.getString("M.family_name")));
-				booking.put("when_booked", rset.getDate("when_booked"));
-				booking.put("when_arrives", rset.getDate("arrive_time"));
+				booking.put("when_booked", rset.getTimestamp("when_booked"));
+				booking.put("when_arrives", rset.getTimestamp("arrive_time"));
 
 			}
+
+			statement.close();
 		}
 		catch(SQLException e){
       System.err.println(e);
@@ -575,6 +596,8 @@ public class DatabaseBackend {
 				sport.put("discipline", rset.getString("discipline"));
 				sports.add(sport);
 			}
+
+			statement.close();
 		}
 		catch(SQLException e){
       System.err.println(e);
