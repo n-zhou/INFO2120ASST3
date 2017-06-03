@@ -578,34 +578,43 @@ public class DatabaseBackend {
 			String query = String.format("SELECT COUNT(*) FROM Journey WHERE depart_time = '%s' AND vehicle_code = '%s'", new Timestamp(departs.getTime()), vehicle);
 			PreparedStatement statement = conn.prepareStatement(query);
 			ResultSet rset = statement.executeQuery();
-			int count = rset.getInt(1);
 			rset.next();
+			int count = rset.getInt(1);
+			
 			//TODO MAKE THIS A TRANSACTION
 
 			if (count != 1) {
 				conn.rollback();
+				//null will not be returned since finally block won't allow it
+				return null;
 			}
 			query = String.format("SELECT journey_id, vehicle_code, P1.place_name as fromp, P2.place_name as top, "
 								  + "depart_time, arrive_time, capacity, nbooked\n"
 								  + "FROM Vehicle NATURAL JOIN ((Journey JOIN Place P2 ON (to_place = P2.place_id)) "
 								  + "JOIN Place P1 ON (from_place = P1.place_id))\n"
-								  + "WHERE vehicle_code = '%s' and depart_time = %s", vehicle, new Timestamp(departs.getTime()));
+								  + "WHERE vehicle_code = '%s' and depart_time = '%s'", vehicle, new Timestamp(departs.getTime()));
 			statement = conn.prepareStatement(query);
 			rset = statement.executeQuery();
+			System.out.println(query);
+			rset.next();
 			int journey = rset.getInt("journey_id");
 			booking.put("vehicle", rset.getString("vehicle_code"));
+			//make gui appear correctly
+			booking.put("vehicle_code", rset.getString("vehicle_code"));
 			booking.put("start_date", rset.getTimestamp("depart_time"));
+			booking.put("start_day", rset.getDate("depart_time"));
 			booking.put("to", rset.getString("top"));
 			booking.put("from", rset.getString("fromp"));
-
-			//booking.put("whenbooked", new Date());
+			java.sql.Timestamp ts = new java.sql.Timestamp(System.currentTimeMillis());
+			booking.put("whenbooked", ts);
 			//query = String.format("SELECT member_id WHERE ")
-
+			booking.put("booked_by", byStaff);
+			booking.put("bookedfor_name", forMember);
 			String insert = "INSERT INTO BOOKING VALUES(?, ?, ?, ?)";
 			PreparedStatement insertstmt = conn.prepareStatement(insert);
-			insertstmt.setInt(4, journey);
 
-			insertstmt.setDate(3, new java.sql.Date(System.currentTimeMillis()));
+			insertstmt.setInt(4, journey);
+			insertstmt.setTimestamp(3, ts);
 			insertstmt.setString(2, byStaff);
 			insertstmt.setString(1, forMember);
 			insertstmt.executeUpdate();
