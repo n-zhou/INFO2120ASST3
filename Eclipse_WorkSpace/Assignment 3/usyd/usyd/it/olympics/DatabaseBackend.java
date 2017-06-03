@@ -572,9 +572,9 @@ public class DatabaseBackend {
 		// FIXME: DUMMY FUNCTION NEEDS TO BE PROPERLY IMPLEMENTED
 		Connection conn = null;
 		try{
+			
 			conn = getConnection();
 			conn.setAutoCommit(false);
-
 			String query = String.format("SELECT COUNT(*) "
 					+ "FROM Journey NATURAL JOIN Vehicle\n"
 					+ "WHERE depart_time = '%s'\n"
@@ -586,11 +586,11 @@ public class DatabaseBackend {
 			int count = rset.getInt(1);
 			
 			//TODO MAKE THIS A TRANSACTION
-
-			if (count != 1) {
+			
+			if (count < 1){
 				conn.rollback();
 				//null will not be returned since finally block won't allow it
-				booking = null;
+				booking = new HashMap<>();
 				return null;
 			}
 			query = String.format("SELECT journey_id, vehicle_code, P1.place_name as fromp, P2.place_name as top, "
