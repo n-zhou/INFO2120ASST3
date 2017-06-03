@@ -304,8 +304,8 @@ public class DatabaseBackend {
 				//String day = "";
 				//day, month, day num, time without millisecond, timezone, year
 				//real_event_time = real_event_time + " AEST ";
-				
-				event.put("event_start", rset.getTimestamp("event_start"));
+				java.sql.Timestamp ts = rset.getTimestamp("event_start");
+				event.put("event_start", ts);
 				events.add(event);
 			}
 
@@ -575,7 +575,11 @@ public class DatabaseBackend {
 			conn = getConnection();
 			conn.setAutoCommit(false);
 
-			String query = String.format("SELECT COUNT(*) FROM Journey WHERE depart_time = '%s' AND vehicle_code = '%s'", new Timestamp(departs.getTime()), vehicle);
+			String query = String.format("SELECT COUNT(*) "
+					+ "FROM Journey NATURAL JOIN Vehicle\n"
+					+ "WHERE depart_time = '%s'\n"
+					+ "AND vehicle_code = '%s'\n"
+					+ "AND nbooked < capacity;", new Timestamp(departs.getTime()), vehicle);
 			PreparedStatement statement = conn.prepareStatement(query);
 			ResultSet rset = statement.executeQuery();
 			rset.next();
@@ -586,6 +590,7 @@ public class DatabaseBackend {
 			if (count != 1) {
 				conn.rollback();
 				//null will not be returned since finally block won't allow it
+				booking = null;
 				return null;
 			}
 			query = String.format("SELECT journey_id, vehicle_code, P1.place_name as fromp, P2.place_name as top, "
@@ -601,22 +606,42 @@ public class DatabaseBackend {
 			booking.put("vehicle", rset.getString("vehicle_code"));
 			//make gui appear correctly
 			booking.put("vehicle_code", rset.getString("vehicle_code"));
-			booking.put("start_date", rset.getTimestamp("depart_time"));
+			booking.put("when_departs", rset.getTimestamp("depart_time"));
+			booking.put("when_arrives", rset.getTimestamp("arrive_time"));
 			booking.put("start_day", rset.getDate("depart_time"));
-			booking.put("to", rset.getString("top"));
-			booking.put("from", rset.getString("fromp"));
+			booking.put("dest_name", rset.getString("top"));
+			booking.put("origin_name", rset.getString("fromp"));
 			java.sql.Timestamp ts = new java.sql.Timestamp(System.currentTimeMillis());
-			booking.put("whenbooked", ts);
-			//query = String.format("SELECT member_id WHERE ")
-			booking.put("booked_by", byStaff);
-			booking.put("bookedfor_name", forMember);
+			booking.put("when_booked", ts);
+			
+			query = String.format("SELECT family_name, given_names\n"
+					+ "FROM Member\n"
+					+ "WHERE member_id = '%s'\n", byStaff);
+			statement = conn.prepareStatement(query);
+			rset = statement.executeQuery();
+			System.out.println(query);
+			rset.next();
+			booking.put("bookedby_name", String.format("%s, %s", rset.getString("family_name"), rset.getString("given_names"))) ;
+		
+			query = String.format("SELECT family_name, given_names\n"
+					+ "FROM Member\n"
+					+ "WHERE member_id = '%s'\n", forMember);
+			statement = conn.prepareStatement(query);
+			rset = statement.executeQuery();
+			System.out.println(query);
+			rset.next();
+			booking.put("bookedfor_name", String.format("%s, %s", rset.getString("family_name"), rset.getString("given_names") ));
 			String insert = "INSERT INTO BOOKING VALUES(?, ?, ?, ?)";
 			PreparedStatement insertstmt = conn.prepareStatement(insert);
-
 			insertstmt.setInt(4, journey);
 			insertstmt.setTimestamp(3, ts);
 			insertstmt.setString(2, byStaff);
 			insertstmt.setString(1, forMember);
+			insertstmt.executeUpdate();
+			String update = String.format("UPDATE Journey\n"
+					+ "SET nbooked = nbooked+1\n"
+					+ "WHERE journey_id = %d;", journey);
+			insertstmt = conn.prepareStatement(update);
 			insertstmt.executeUpdate();
 			conn.commit();
 			statement.close();
