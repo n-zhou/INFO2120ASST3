@@ -292,7 +292,7 @@ public class DatabaseBackend {
 			statement.setInt(1, sportname);
 			//System.out.println(query);
 			ResultSet rset = statement.executeQuery();
-			
+			Timestamp event_start;
 			while(rset.next()){
 				HashMap<String,Object> event = new HashMap<String,Object>();
 				event.put("event_id", rset.getInt("event_id"));
@@ -304,8 +304,9 @@ public class DatabaseBackend {
 				//String day = "";
 				//day, month, day num, time without millisecond, timezone, year
 				//real_event_time = real_event_time + " AEST ";
-				java.sql.Timestamp ts = rset.getTimestamp("event_start");
-				event.put("event_start", ts);
+				event_start = rset.getTimestamp(6);
+				
+				event.put("event_start", event_start);
 				events.add(event);
 			}
 
@@ -723,6 +724,7 @@ public class DatabaseBackend {
 			}
 
 			statement.close();
+			rset.close();
 		}
 		catch(SQLException e){
       System.err.println(e);
