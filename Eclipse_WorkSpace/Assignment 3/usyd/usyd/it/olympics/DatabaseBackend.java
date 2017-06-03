@@ -185,7 +185,9 @@ public class DatabaseBackend {
 			// This is for an athlete
 			//TODO
 			if(details.get("member_type").equals("athlete")){
-
+				int gold_count = 0;
+				int silver_count = 0;
+				int bronze_count = 0;
 				query = "SELECT COUNT(*)\n"
 					+ "FROM Participates\n"
 					+ "WHERE athlete_id = ?\n"
@@ -194,7 +196,18 @@ public class DatabaseBackend {
 				statement.setString(1, memberID);
 				rset = statement.executeQuery();
 				rset.next();
-				details.put("num_gold", rset.getInt(1));
+				gold_count+=rset.getInt(1);
+				
+				query = "SELECT COUNT(*)\n"
+						+ "FROM Team NATURAL JOIN TeamMember\n"
+						+ "WHERE athlete_id = ?\n"
+						+ "AND medal = 'G';";
+					statement = conn.prepareStatement(query);
+					statement.setString(1, memberID);
+					rset = statement.executeQuery();
+					rset.next();
+					gold_count+=rset.getInt(1);
+				details.put("num_gold", gold_count);
 
 				query = "SELECT COUNT(*)\n"
 					+ "FROM Participates\n"
@@ -204,7 +217,17 @@ public class DatabaseBackend {
 				statement.setString(1, memberID);
 				rset = statement.executeQuery();
 				rset.next();
-				details.put("num_silver", rset.getInt(1));
+				silver_count+=rset.getInt(1);
+				query = "SELECT COUNT(*)\n"
+						+ "FROM Team NATURAL JOIN TeamMember\n"
+						+ "WHERE athlete_id = ?\n"
+						+ "AND medal = 'S';";
+					statement = conn.prepareStatement(query);
+					statement.setString(1, memberID);
+					rset = statement.executeQuery();
+					rset.next();
+					silver_count+=rset.getInt(1);
+				details.put("num_silver", silver_count);
 
 				query = "SELECT COUNT(*)\n"
 					+ "FROM Participates\n"
@@ -214,7 +237,17 @@ public class DatabaseBackend {
 				statement.setString(1, memberID);
 				rset = statement.executeQuery();
 				rset.next();
-				details.put("num_bronze", rset.getInt(1));
+				bronze_count+=rset.getInt(1);
+				query = "SELECT COUNT(*)\n"
+						+ "FROM Team NATURAL JOIN TeamMember\n"
+						+ "WHERE athlete_id = ?\n"
+						+ "AND medal = 'B';";
+					statement = conn.prepareStatement(query);
+					statement.setString(1, memberID);
+					rset = statement.executeQuery();
+					rset.next();
+					bronze_count+=rset.getInt(1);
+				details.put("num_bronze", bronze_count);
 			}
 			statement.close();
 		}
@@ -250,7 +283,7 @@ public class DatabaseBackend {
 
 			String query = "SELECT event_id, sport_id, event_name, event_gender, place_name, event_start\n"
 				+ "FROM Sport NATURAL JOIN\n"
-				+ "Event LEFT JOIN\n"
+				+ "Event JOIN\n"
 				+ "Place ON (sport_venue = place_id)\n"
 				+ "WHERE sport_id = ?;";
 
@@ -303,37 +336,82 @@ public class DatabaseBackend {
 		Connection conn = null;
 		try{
 			conn = getConnection();
-			String query = "SELECT family_name, given_names, country_name, medal\n"
-				+ "FROM Event NATURAL JOIN\n"
-				+ "Participates JOIN\n"
-				+ "Member ON (athlete_id = member_id) NATURAL JOIN\n"
-				+ "Country\n"
-				+ "WHERE event_id = ?;";
+			
+			String query = "SELECT COUNT(*) FROM TeamEvent WHERE event_id = ?;";
 			System.out.println(query);
 			PreparedStatement statement = conn.prepareStatement(query);
 			statement.setInt(1, eventId);
 			ResultSet rset = statement.executeQuery();
-			while(rset.next()){
-				HashMap<String, Object> result = new HashMap<>();
-				result.put("participant", String.format("%s, %s",rset.getString("family_name"), rset.getString("given_names").split(" ")[0]));
-				result.put("country_name", rset.getString("country_name"));
-				if(rset.getString("medal") == null)
-					result.put("medal", null);
-				else
-					switch(rset.getString("medal")){
-						case "G":
-							result.put("medal", "Gold");
-							break;
-						case "S":
-							result.put("medal", "Silver");
-							break;
-						case "B":
-							result.put("medal", "Bronze");
-							break;
-					}
-				results.add(result);
+			rset.next();
+			int isTeamEvent = rset.getInt(1);
+			
+			if (isTeamEvent == 0) {
+				
+				query = "SELECT family_name, given_names, country_name, medal\n"
+					+ "FROM Event NATURAL JOIN\n"
+					+ "Participates JOIN\n"
+					+ "Member ON (athlete_id = member_id) NATURAL JOIN\n"
+					+ "Country\n"
+					+ "WHERE event_id = ?\n"
+					+ "ORDER BY family_name;";
+				System.out.println(query);
+				statement = conn.prepareStatement(query);
+				statement.setInt(1, eventId);
+				rset = statement.executeQuery();
+				while(rset.next()){
+					HashMap<String, Object> result = new HashMap<>();
+					result.put("participant", String.format("%s, %s",rset.getString("family_name"), rset.getString("given_names")));
+					result.put("country_name", rset.getString("country_name"));
+					if(rset.getString("medal") == null)
+						result.put("medal", null);
+					else
+						switch(rset.getString("medal")){
+							case "G":
+								result.put("medal", "Gold");
+								break;
+							case "S":
+								result.put("medal", "Silver");
+								break;
+							case "B":
+								result.put("medal", "Bronze");
+								break;
+						}
+					results.add(result);
+				}
 			}
-			statement.close();
+			else {
+				query = "SELECT * "
+						+ "FROM Team NATURAL JOIN TeamEvent NATURAL JOIN Country "
+						+ "where event_id = ?"
+						+ "ORDER BY team_name;";
+				System.out.println(query);
+				statement = conn.prepareStatement(query);
+				statement.setInt(1, eventId);
+				rset = statement.executeQuery();
+				while (rset.next()) {
+					HashMap<String, Object> result = new HashMap<>();
+					result.put("participant", rset.getString("team_name"));
+					result.put("country_name", rset.getString("country_name"));
+					if(rset.getString("medal") == null)
+						result.put("medal", null);
+					else
+						switch(rset.getString("medal")){
+							case "G":
+								result.put("medal", "Gold");
+								break;
+							case "S":
+								result.put("medal", "Silver");
+								break;
+							case "B":
+								result.put("medal", "Bronze");
+								break;
+						}
+					results.add(result);
+					
+				}
+				
+			}
+			statement.close(); 
 		}
 		catch(SQLException e){
       System.err.println(e);
@@ -428,7 +506,7 @@ public class DatabaseBackend {
 		}
 		catch(SQLException e){
       System.err.println(e);
-			throw new OlympicsDBException("Error checking member details", e);
+			throw new OlympicsDBException("Error getting booking details", e);
 		}
 		finally{
 			reallyClose(conn);
@@ -497,10 +575,11 @@ public class DatabaseBackend {
 			conn = getConnection();
 			conn.setAutoCommit(false);
 
-			String query = String.format("SELECT COUNT(*) FROM Journey WHERE depart_time = %s AND vehicle_code = '%s'", new Timestamp(departs.getTime()), vehicle);
+			String query = String.format("SELECT COUNT(*) FROM Journey WHERE depart_time = '%s' AND vehicle_code = '%s'", new Timestamp(departs.getTime()), vehicle);
 			PreparedStatement statement = conn.prepareStatement(query);
 			ResultSet rset = statement.executeQuery();
 			int count = rset.getInt(1);
+			rset.next();
 			//TODO MAKE THIS A TRANSACTION
 
 			if (count != 1) {
@@ -537,8 +616,8 @@ public class DatabaseBackend {
 
 		}
     catch(SQLException e){
-      System.err.println(e);
-			throw new OlympicsDBException("Error checking member details", e);
+      System.err.println(e.getMessage());
+			throw new OlympicsDBException("Error making booking", e);
 		}
     finally{
 			reallyClose(conn);
@@ -567,12 +646,14 @@ public class DatabaseBackend {
 			ResultSet rset = statement.executeQuery();
 			while(rset.next()){
 				booking.put("journey_id", rset.getInt("journey_id"));
+				booking.put("vehicle", rset.getString("vehicle_code"));
+				//making it appear on gui correctly
 				booking.put("vehicle_code", rset.getString("vehicle_code"));
 				booking.put("when_departs", rset.getTimestamp("depart_time"));
 				booking.put("dest_name", rset.getString("top"));
 				booking.put("origin_name", rset.getString("fromp"));
-				booking.put("bookedby_name", String.format("%s %s", rset.getString("s_first").split(" ")[0], rset.getString("s_last")));
-				booking.put("bookedfor_name", String.format("%s, %s", rset.getString("m_last"), rset.getString("m_first").split(" ")[0]));
+				booking.put("bookedby_name", String.format("%s, %s", rset.getString("s_last"), rset.getString("s_first")));
+				booking.put("bookedfor_name", String.format("%s, %s", rset.getString("m_last"), rset.getString("m_first")));
 				booking.put("when_booked", rset.getTimestamp("when_booked"));
 				booking.put("when_arrives", rset.getTimestamp("arrive_time"));
 
