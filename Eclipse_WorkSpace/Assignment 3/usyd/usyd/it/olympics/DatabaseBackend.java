@@ -259,6 +259,7 @@ public class DatabaseBackend {
 			statement.setInt(1, sportname);
 			//System.out.println(query);
 			ResultSet rset = statement.executeQuery();
+			
 			while(rset.next()){
 				HashMap<String,Object> event = new HashMap<String,Object>();
 				event.put("event_id", rset.getInt("event_id"));
@@ -266,6 +267,11 @@ public class DatabaseBackend {
 				event.put("event_name", rset.getString("event_name"));
 				event.put("event_gender", rset.getString("event_gender"));
 				event.put("sport_venue", rset.getString("place_name"));
+				//String real_event_time = "";
+				//String day = "";
+				//day, month, day num, time without millisecond, timezone, year
+				//real_event_time = real_event_time + " AEST ";
+				
 				event.put("event_start", rset.getTimestamp("event_start"));
 				events.add(event);
 			}
@@ -394,7 +400,7 @@ public class DatabaseBackend {
 		return journeys;
 	}
 	//TODO
-	ArrayList<HashMap<String,Object>> getMemberBookings(String memberID) throws Exception {
+	ArrayList<HashMap<String,Object>> getMemberBookings(String memberID) throws OlympicsDBException {
 		ArrayList<HashMap<String,Object>> bookings = new ArrayList<HashMap<String,Object>>();
 		Connection conn = null;
 		try{
@@ -461,8 +467,8 @@ public class DatabaseBackend {
 			while(rset.next()) {
 				details.put("journey_id", rset.getInt("journey_id"));
 				details.put("vehicle_code", rset.getString("vehicle_code"));
-				details.put("origin_name", rset.getInt("fromp"));
-				details.put("dest_name", rset.getInt("top"));
+				details.put("origin_name", rset.getString("fromp"));
+				details.put("dest_name", rset.getString("top"));
 				details.put("when_departs", rset.getTimestamp("depart_time"));
 				details.put("when_arrives", rset.getTimestamp("arrive_time"));
 				details.put("capacity", rset.getInt("capacity"));
@@ -566,7 +572,7 @@ public class DatabaseBackend {
 				booking.put("dest_name", rset.getString("top"));
 				booking.put("origin_name", rset.getString("fromp"));
 				booking.put("bookedby_name", String.format("%s %s", rset.getString("s_first").split(" ")[0], rset.getString("s_last")));
-				booking.put("bookedfor_name", String.format("%s %s", rset.getString("m_first").split(" ")[0], rset.getString("m_last")));
+				booking.put("bookedfor_name", String.format("%s, %s", rset.getString("m_last"), rset.getString("m_first").split(" ")[0]));
 				booking.put("when_booked", rset.getTimestamp("when_booked"));
 				booking.put("when_arrives", rset.getTimestamp("arrive_time"));
 
