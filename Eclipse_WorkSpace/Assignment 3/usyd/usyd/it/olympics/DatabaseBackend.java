@@ -311,6 +311,7 @@ public class DatabaseBackend {
 			}
 
 			statement.close();
+			rset.close();
 		}
 		catch(SQLException e){
       System.err.println(e);
