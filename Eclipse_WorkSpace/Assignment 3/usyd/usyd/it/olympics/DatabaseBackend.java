@@ -305,8 +305,8 @@ public class DatabaseBackend {
 				//day, month, day num, time without millisecond, timezone, year
 				//real_event_time = real_event_time + " AEST ";
 				event_start = rset.getTimestamp(6);
-				
-				event.put("event_start", event_start);
+				Date event_date = new Date(event_start.getTime());
+				event.put("event_start", event_date);
 				events.add(event);
 			}
 
@@ -462,8 +462,10 @@ public class DatabaseBackend {
 				journey.put("vehicle_code", rset.getString("vehicle_code"));
 				journey.put("origin_name", rset.getString("fromp"));
 				journey.put("dest_name", rset.getString("top"));
-				journey.put("when_departs", rset.getTimestamp("depart_time"));
-				journey.put("when_arrives", rset.getTimestamp("arrive_time"));
+				Date when_departs = new Date(rset.getTimestamp("depart_time").getTime());
+				journey.put("when_departs", when_departs);
+				Date when_arrives = new Date(rset.getTimestamp("arrive_time").getTime());
+				journey.put("when_arrives", when_arrives);
 				journey.put("available_seats", Integer.valueOf(rset.getInt("capacity")-rset.getInt("nbooked")));
 				journeys.add(journey);
 
