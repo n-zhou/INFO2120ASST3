@@ -296,7 +296,7 @@ public class DatabaseBackend {
 			while(rset.next()){
 				HashMap<String,Object> event = new HashMap<String,Object>();
 				event.put("event_id", rset.getInt("event_id"));
-				event.put("sport_id", rset.getString("sport_id"));
+				event.put("sport_id", rset.getInt("sport_id"));
 				event.put("event_name", rset.getString("event_name"));
 				event.put("event_gender", rset.getString("event_gender"));
 				event.put("sport_venue", rset.getString("place_name"));
@@ -305,8 +305,8 @@ public class DatabaseBackend {
 				//day, month, day num, time without millisecond, timezone, year
 				//real_event_time = real_event_time + " AEST ";
 				event_start = rset.getTimestamp(6);
-				Date event_date = new Date(event_start.getTime());
-				event.put("event_start", event_date);
+				//Date event_date = new Date(event_start.getTime());
+				event.put("event_start", rset.getTimestamp("event_start"));
 				events.add(event);
 			}
 
