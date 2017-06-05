@@ -265,5 +265,20 @@ public class OlympicsDBClient {
             setMessage(e.getMessage());
         }
 	}
+	
+	public void getEvents(Integer sportId, String sex) {
+        setMessage("Retrieving events");
+        try {
+        	ArrayList<HashMap<String, Object>> events = db.getEventsOfSport(sportId, sex);
+            gui.getEventBrowserScreen().showTuples(events);
+            gui.showEventBrowserScreen();
+            setMessage("Details retrieved");
+        } catch (OlympicsDBException e) {
+            setMessage(e.getMessage());
+        }
+        catch (Exception e) {
+            setMessage(e.getMessage());
+        }
+	}
 
 }

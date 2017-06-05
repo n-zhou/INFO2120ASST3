@@ -349,6 +349,60 @@ public class DatabaseBackend {
 		}
 		return events;
 	}
+	
+	//overloaded sexed up
+	ArrayList<HashMap<String, Object>> getEventsOfSport(Integer sportname, String sex) throws OlympicsDBException {
+		// FIXME: Replace the following with REAL OPERATIONS!
+
+		ArrayList<HashMap<String, Object>> events = new ArrayList<>();
+		Connection conn = null;
+		try{
+			conn = getConnection();
+
+			String query = "SELECT event_id, sport_id, event_name, event_gender, place_name, event_start\n"
+				+ "FROM Sport NATURAL JOIN\n"
+				+ "Event JOIN\n"
+				+ "Place ON (sport_venue = place_id)\n"
+				+ "WHERE sport_id = ?\n"
+				+ "AND event_gender = ?;";
+
+
+			PreparedStatement statement = conn.prepareStatement(query);
+			statement.setInt(1, sportname);
+			statement.setString(2, sex);
+			//System.out.println(query);
+			ResultSet rset = statement.executeQuery();
+			Timestamp event_start;
+			while(rset.next()){
+				HashMap<String,Object> event = new HashMap<String,Object>();
+				event.put("event_id", rset.getInt("event_id"));
+				event.put("sport_id", rset.getInt("sport_id"));
+				event.put("event_name", rset.getString("event_name"));
+				event.put("event_gender", rset.getString("event_gender"));
+				event.put("sport_venue", rset.getString("place_name"));
+				//String real_event_time = "";
+				//String day = "";
+				//day, month, day num, time without millisecond, timezone, year
+				//real_event_time = real_event_time + " AEST ";
+				event_start = rset.getTimestamp(6);
+				//Date event_date = new Date(event_start.getTime());
+				event.put("event_start", rset.getTimestamp("event_start"));
+				events.add(event);
+			}
+
+			statement.close();
+			rset.close();
+		}
+		catch(SQLException e){
+      System.err.println(e);
+			throw new OlympicsDBException("Error checking member details", e);
+		}
+		finally{
+
+			reallyClose(conn);
+		}
+		return events;
+	}
 
 	/**
    * Retrieve the results for a single event

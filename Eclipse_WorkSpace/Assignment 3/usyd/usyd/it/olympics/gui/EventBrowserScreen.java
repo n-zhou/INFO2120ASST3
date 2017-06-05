@@ -40,8 +40,10 @@ public class EventBrowserScreen extends GuiScreen {
 	private final HashMapTupleTabelModel list = new HashMapTupleTabelModel(eventConv,
 		new String[] { "event_name", "event_gender", "sport_venue", "event_start"},
 		new String[] { "Event", "Gender","Venue","Starts"});
+	private final String[] sex = {"", "M", "W"};
 	private final ListSelectionModel listSelection;
 	private final JComboBox<HashMap<String, Object>> sportChooser;
+	private final JComboBox<String> gender;
 
 	public EventBrowserScreen(OlympicsDBClient r) {
 		super(r);
@@ -57,12 +59,22 @@ public class EventBrowserScreen extends GuiScreen {
 		sportChooser = new JComboBox<HashMap<String, Object>>();
 		sportChooser.setRenderer(new EventTupleRenderer());
 		choicePanel.add(sportChooser);
+		
+		
+		//TODO PAGED RESULT
+		JLabel lblGender = new JLabel("Gender");
+		choicePanel.add(lblGender);
+		gender = new JComboBox<>(sex);
+		choicePanel.add(gender);
 
 		JButton btnUpdate = new JButton("Search");
 		btnUpdate.addActionListener(new ActionListener() {
 			@SuppressWarnings("unchecked")
 			public void actionPerformed(ActionEvent arg0) {
-				client_.getEvents(eventConv.getInt("sport_id", (HashMap<String, Object>) sportChooser.getSelectedItem()));
+				if(gender.getSelectedItem().equals(""))
+					client_.getEvents(eventConv.getInt("sport_id", (HashMap<String, Object>) sportChooser.getSelectedItem()));
+				else
+					client_.getEvents(eventConv.getInt("sport_id", (HashMap<String, Object>) sportChooser.getSelectedItem()), gender.getSelectedItem().toString());
 			}
 		});
 		choicePanel.add(btnUpdate);
