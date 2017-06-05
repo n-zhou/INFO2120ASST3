@@ -625,7 +625,7 @@ public class DatabaseBackend {
 	        + "AND vehicle_code = ?\n"
 	        + "AND nbooked < capacity;";
 	    PreparedStatement statement = conn.prepareStatement(query);
-	    statement.setTimestamp(1, new Timestamp(departs.getTime()));
+	    statement.setString(1, (new Timestamp(departs.getTime()).toString()));
 	    statement.setString(2, vehicle);
 	    ResultSet rset = statement.executeQuery();
 	    rset.next();
@@ -645,7 +645,7 @@ public class DatabaseBackend {
 	                + "JOIN Place P1 ON (from_place = P1.place_id))\n"
 	                + "WHERE vehicle_code = ? and depart_time = ?;";
 	    statement = conn.prepareStatement(query);
-	    statement.setTimestamp(2, new Timestamp(departs.getTime()));
+	    statement.setString(2, (new Timestamp(departs.getTime()).toString()));
 	    statement.setString(1, vehicle);
 	    rset = statement.executeQuery();
 	    System.out.println(query);
