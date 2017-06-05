@@ -63,7 +63,7 @@ public final class GuiFrontEnd {
         window = new JFrame("");
         window.setPreferredSize(new Dimension(800, 400));
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        window.setResizable(false);
+        //window.setResizable(false);
 
         // This will be the content pane for the window
         JPanel content = new JPanel();
@@ -105,6 +105,7 @@ public final class GuiFrontEnd {
         });
         
         // TODO: make conditional on member type
+        //if member type is staff
         addMenuOption(optMakeBooking, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
@@ -143,7 +144,7 @@ public final class GuiFrontEnd {
         registerScreen(journeyDetailsScreen = new JourneyDetailsScreen(root), "journeyDetailsScreen");
         registerScreen(generalReportScreen = new ReportScreen(root), "generalReportScreen");
         registerScreen(historyScreen = new BookingHistoryScreen(root), "historyScreen");
-        registerScreen(bookingsCreationScreen = new BookingsCreationScreen(root), "bookingsCreationScreen");
+       	registerScreen(bookingsCreationScreen = new BookingsCreationScreen(root), "bookingsCreationScreen");
         registerScreen(eventBrowserScreen = new EventBrowserScreen(root), "eventBrowserScreen");
         registerScreen(eventResultsScreen = new EventResultsScreen(root), "eventResultsScreen");
         

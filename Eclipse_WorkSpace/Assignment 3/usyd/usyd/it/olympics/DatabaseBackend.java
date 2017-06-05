@@ -50,7 +50,40 @@ public class DatabaseBackend {
 	///////////////////////////////
 	/// Student Defined Functions
 	///////////////////////////////
-
+	
+	/**BLEH BLEH BLEH
+	*BLEH
+	*ESFAAA
+	*/
+	private void hashPasswords(){
+		Connection conn = null;
+		try{
+			conn = getConnection();
+			String query = "SELECT member_id, pass_word\n"
+					+ "FROM Member;\n";
+			PreparedStatement stmt = conn.prepareStatement(query);
+			ResultSet rset = stmt.executeQuery();
+			while(rset.next()){
+				String mem_id = rset.getString("member_id");
+				if(rset.getString("pass_word") == null)
+					continue;
+				String new_password = String.valueOf(rset.getString("pass_word").hashCode());
+				String update = String.format("UPDATE Member\n"
+						+ "SET pass_word = ? \n"
+						+ "WHERE member_id = ?\n");
+				PreparedStatement updates = conn.prepareStatement(update);
+				updates.setString(1, new_password);
+				updates.setString(2, mem_id);
+				updates.executeUpdate();
+			}
+		}
+		catch(Exception e){
+			System.out.println(e);
+		}
+		finally{
+			reallyClose(conn);
+		}
+	}
 
 	/////  Login and Member  //////
 
@@ -64,6 +97,8 @@ public class DatabaseBackend {
    * @throws SQLException
    */
 	public HashMap<String,Object> checkLogin(String member, char[] password) throws OlympicsDBException  {
+		//update database with hashed passwords
+		//hashPasswords();
 		HashMap<String,Object> details = null;
 		Connection conn = null;
 		try {
@@ -76,7 +111,7 @@ public class DatabaseBackend {
 			String query = "SELECT * FROM Member WHERE LOWER(member_id) = LOWER(?) AND pass_word = ?;";
 			PreparedStatement statement = conn.prepareStatement(query);
 			statement.setString(1, member);
-			statement.setString(2, new String(password));
+			statement.setString(2, String.valueOf(new String(password).hashCode()));
 			ResultSet rset = statement.executeQuery();
 			//FIXME PROTECT ME FROM SQL INJECTIONS
 			if(rset.next()){
