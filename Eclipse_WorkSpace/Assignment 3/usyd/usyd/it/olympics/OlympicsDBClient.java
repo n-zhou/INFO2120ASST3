@@ -124,6 +124,22 @@ public class OlympicsDBClient {
         gui.showJourneyFinderScreen();
     }
     
+    public void showMatchingJourneys(String origin, String dest, Date date, int limit) {
+        setMessage("Fetching journey availabilities.");
+        try {
+            ArrayList<HashMap<String, Object>> journeys = db.findJourneys(origin, dest, date ,limit);
+            gui.getJourneyFinderScreen().showTuples(journeys);
+            setMessage("All journeys fetched.");
+        } catch (OlympicsDBException e) {
+            setMessage(e.getMessage());
+            gui.getJourneyFinderScreen().showTuples(new ArrayList<HashMap<String, Object>>());
+        }
+        catch(Exception e){
+        	setMessage(e.getMessage());
+        }
+        gui.showJourneyFinderScreen();
+    }
+    
     public void showJourneyAvailability() {
         setMessage("Fetching journey availabilities.");
         gui.showJourneyFinderScreen();
@@ -142,6 +158,10 @@ public class OlympicsDBClient {
     }
 
     public void makeBooking(String forMember, String vehicle, Date departs) {
+    	if(!memberType.toLowerCase().equals("staff")){
+    		setMessage("You must be a staff member to make a booking retard!");
+    		return;
+    	}
         setMessage("Submitting booking");
         try{
         	HashMap<String,Object> bookingDetails = db.makeBooking(memberId, 

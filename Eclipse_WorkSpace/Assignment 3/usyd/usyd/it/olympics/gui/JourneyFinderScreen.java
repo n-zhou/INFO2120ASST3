@@ -36,6 +36,8 @@ public class JourneyFinderScreen extends GuiScreen {
 	private final ListSelectionModel listSelection;
 	private final JTextField txtFrom;
 	private final JTextField txtDest;
+	private final JTextField limit;
+	//private final JTextField limit;
 	private final SpinnerDateModel startDates = new SpinnerDateModel(new Date(1305554400000L), null, null, Calendar.DAY_OF_WEEK_IN_MONTH);
 
 	public JourneyFinderScreen(OlympicsDBClient r) {
@@ -69,11 +71,23 @@ public class JourneyFinderScreen extends GuiScreen {
 		startDateSelect.setModel(startDates);
 		startDateSelect.setEditor(new JSpinner.DateEditor(startDateSelect, "dd/MM/yyyy"));
 		choicePanel.add(startDateSelect);
+		
+		//FIXME limiter
+		JLabel lblLimit = new JLabel("Limit Results");
+		choicePanel.add(lblLimit);
+		limit = new JTextField();
+		limit.setText("5");
+		choicePanel.add(limit);
+		limit.setColumns(5);
+		//woo
 
 		JButton btnUpdate = new JButton("Search");
 		btnUpdate.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				client_.showMatchingJourneys(txtFrom.getText(),txtDest.getText(),(Date)startDates.getValue());
+				if(limit.getText().equals(""))
+					client_.showMatchingJourneys(txtFrom.getText(),txtDest.getText(),(Date)startDates.getValue());
+				else
+					client_.showMatchingJourneys(txtFrom.getText(),txtDest.getText(),(Date)startDates.getValue(), Integer.parseInt(limit.getText()));
 			}
 		});
 		choicePanel.add(btnUpdate);

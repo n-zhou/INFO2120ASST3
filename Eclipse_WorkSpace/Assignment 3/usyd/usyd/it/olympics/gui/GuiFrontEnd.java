@@ -61,7 +61,7 @@ public final class GuiFrontEnd {
     public GuiFrontEnd(OlympicsDBClient root) {
         client = root;
         window = new JFrame("");
-        window.setPreferredSize(new Dimension(800, 400));
+        window.setPreferredSize(new Dimension(1000, 450));
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         //window.setResizable(false);
 

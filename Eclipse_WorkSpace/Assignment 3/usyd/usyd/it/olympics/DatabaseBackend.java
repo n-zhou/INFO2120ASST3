@@ -511,6 +511,60 @@ public class DatabaseBackend {
 	  }
 	  return journeys;
 	}
+	
+	//OVERLOADED METHOD WITH LIMIT IMPLEMENTATION
+	ArrayList<HashMap<String, Object>> findJourneys(String fromPlace, String toPlace, Date journeyDate, int limit) throws OlympicsDBException {
+		  // FIXME: Replace the following with REAL OPERATIONS!
+		  ArrayList<HashMap<String, Object>> journeys = new ArrayList<>();
+
+		  Connection conn = null;
+		  try{
+		    conn = getConnection();
+		    //FIXME THING REPLACE '=' WITH LIKE
+		    String query = "SELECT journey_id, vehicle_code, P1.place_name as fromp, P2.place_name as top, "
+		                   + "depart_time, arrive_time, capacity, nbooked\n"
+		                   + "FROM Place P2 JOIN (Journey NATURAL JOIN Vehicle) ON (to_place = P2.place_id)"
+		                   + "JOIN Place P1 ON (from_place = P1.place_id)\n"
+		                   + "WHERE P1.place_name LIKE ?\n"
+		                   + "AND P2.place_name LIKE ?\n"
+		                   + "AND CAST(depart_time AS DATE) = ?\n"
+		                   + "LIMIT ?;";
+
+		    PreparedStatement statement = conn.prepareStatement(query);
+		    System.out.println(query);
+		    statement.setString(1, fromPlace);
+		    statement.setString(2, toPlace);
+		    statement.setInt(4, limit);
+		    statement.setDate(3, new java.sql.Date(journeyDate.getTime()));
+
+		    ResultSet rset = statement.executeQuery();
+		    while(rset.next()){
+		      HashMap<String,Object> journey = new HashMap<String,Object>();
+		      journey.put("journey_id", rset.getInt("journey_id"));
+		      journey.put("vehicle_code", rset.getString("vehicle_code"));
+		      journey.put("origin_name", rset.getString("fromp"));
+		      journey.put("dest_name", rset.getString("top"));
+		      Date when_departs = new Date(rset.getTimestamp("depart_time").getTime());
+		      journey.put("when_departs", when_departs);
+		      Date when_arrives = new Date(rset.getTimestamp("arrive_time").getTime());
+		      journey.put("when_arrives", when_arrives);
+		      journey.put("available_seats", Integer.valueOf(rset.getInt("capacity")-rset.getInt("nbooked")));
+		      journeys.add(journey);
+
+		    }
+		    statement.close();
+		  }
+		  catch(SQLException e){
+		    System.err.println(e);
+		    throw new OlympicsDBException("Error finding journey", e);
+		  }
+		  finally{
+		    reallyClose(conn);
+		  }
+		  return journeys;
+		}
+	
+	
 	//TODO
 	ArrayList<HashMap<String,Object>> getMemberBookings(String memberID) throws OlympicsDBException {
 	  ArrayList<HashMap<String,Object>> bookings = new ArrayList<HashMap<String,Object>>();
