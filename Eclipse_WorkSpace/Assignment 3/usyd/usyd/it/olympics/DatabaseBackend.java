@@ -111,7 +111,7 @@ public class DatabaseBackend {
 			String query = "SELECT * FROM Member WHERE LOWER(member_id) = LOWER(?) AND pass_word = ?;";
 			PreparedStatement statement = conn.prepareStatement(query);
 			statement.setString(1, member);
-			statement.setString(2, String.valueOf(new String(password).hashCode()));
+			statement.setString(2, new String(password));
 			ResultSet rset = statement.executeQuery();
 			//FIXME PROTECT ME FROM SQL INJECTIONS
 			if(rset.next()){
@@ -481,7 +481,7 @@ public class DatabaseBackend {
 	    conn = getConnection();
 	    //FIXME THING REPLACE '=' WITH LIKE
 	    String query = "SELECT journey_id, vehicle_code, P1.place_name as fromp, P2.place_name as top, "
-	                   + "depart_time, arrive_time, vehicle, capacity, nbooked\n"
+	                   + "depart_time, arrive_time, capacity, nbooked\n"
 	                   + "FROM Place P2 JOIN (Journey NATURAL JOIN Vehicle) ON (to_place = P2.place_id)"
 	                   + "JOIN Place P1 ON (from_place = P1.place_id)\n"
 	                   + "WHERE P1.place_name LIKE ?\n"
