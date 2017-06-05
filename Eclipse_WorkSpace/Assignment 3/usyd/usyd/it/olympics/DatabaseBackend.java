@@ -223,66 +223,57 @@ public class DatabaseBackend {
 				int gold_count = 0;
 				int silver_count = 0;
 				int bronze_count = 0;
-				query = "SELECT COUNT(*)\n"
-					+ "FROM Participates\n"
-					+ "WHERE athlete_id = ?\n"
-					+ "AND medal = 'G';";
+				query = "SELECT COUNT(*) FROM "
+						+ "(SELECT medal FROM Team NATURAL JOIN TeamMember "
+						+ "WHERE athlete_id = ? "
+						+ "AND medal = 'G' "
+						+ "UNION ALL "
+						+ "SELECT medal "
+						+ "FROM Participates "
+						+ "WHERE athlete_id = ? "
+						+ "AND medal = 'G') as count_gold;";
 				statement = conn.prepareStatement(query);
 				statement.setString(1, memberID);
+				statement.setString(2, memberID);
 				rset = statement.executeQuery();
 				rset.next();
 				gold_count+=rset.getInt(1);
-
-				query = "SELECT COUNT(*)\n"
-						+ "FROM Team NATURAL JOIN TeamMember\n"
-						+ "WHERE athlete_id = ?\n"
-						+ "AND medal = 'G';";
-					statement = conn.prepareStatement(query);
-					statement.setString(1, memberID);
-					rset = statement.executeQuery();
-					rset.next();
-					gold_count+=rset.getInt(1);
 				details.put("num_gold", gold_count);
 
-				query = "SELECT COUNT(*)\n"
-					+ "FROM Participates\n"
-					+ "WHERE athlete_id = ?\n"
-					+ "AND medal = 'S';";
+				query = "SELECT COUNT(*) FROM "
+						+ "(SELECT medal FROM Team NATURAL JOIN TeamMember "
+						+ "WHERE athlete_id = ? "
+						+ "AND medal = 'S' "
+						+ "UNION ALL "
+						+ "SELECT medal "
+						+ "FROM Participates "
+						+ "WHERE athlete_id = ? "
+						+ "AND medal = 'S') as count_silver;";
 				statement = conn.prepareStatement(query);
 				statement.setString(1, memberID);
+				statement.setString(2, memberID);
 				rset = statement.executeQuery();
 				rset.next();
 				silver_count+=rset.getInt(1);
-				query = "SELECT COUNT(*)\n"
-						+ "FROM Team NATURAL JOIN TeamMember\n"
-						+ "WHERE athlete_id = ?\n"
-						+ "AND medal = 'S';";
-					statement = conn.prepareStatement(query);
-					statement.setString(1, memberID);
-					rset = statement.executeQuery();
-					rset.next();
-					silver_count+=rset.getInt(1);
 				details.put("num_silver", silver_count);
 
-				query = "SELECT COUNT(*)\n"
-					+ "FROM Participates\n"
-					+ "WHERE athlete_id = ?\n"
-					+ "AND medal = 'B';";
+				query = "SELECT COUNT(*) FROM "
+						+ "(SELECT medal FROM Team NATURAL JOIN TeamMember "
+						+ "WHERE athlete_id = ? "
+						+ "AND medal = 'B' "
+						+ "UNION ALL "
+						+ "SELECT medal "
+						+ "FROM Participates "
+						+ "WHERE athlete_id = ? "
+						+ "AND medal = 'B') as count_bronze;";
 				statement = conn.prepareStatement(query);
 				statement.setString(1, memberID);
+				statement.setString(2, memberID);
 				rset = statement.executeQuery();
 				rset.next();
 				bronze_count+=rset.getInt(1);
-				query = "SELECT COUNT(*)\n"
-						+ "FROM Team NATURAL JOIN TeamMember\n"
-						+ "WHERE athlete_id = ?\n"
-						+ "AND medal = 'B';";
-					statement = conn.prepareStatement(query);
-					statement.setString(1, memberID);
-					rset = statement.executeQuery();
-					rset.next();
-					bronze_count+=rset.getInt(1);
 				details.put("num_bronze", bronze_count);
+
 			}
 			statement.close();
 		}
